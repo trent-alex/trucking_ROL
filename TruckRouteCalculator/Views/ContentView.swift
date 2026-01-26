@@ -1,0 +1,138 @@
+import SwiftUI
+
+struct ContentView: View {
+    @StateObject private var viewModel = RouteCalculatorViewModel()
+    @State private var showingSettings = false
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Route Input Section
+                    RouteInputView(viewModel: viewModel)
+
+                    // Load Configuration Section
+                    LoadConfigView(viewModel: viewModel)
+
+                    // Calculate Button
+                    Button(action: viewModel.calculateRoute) {
+                        HStack {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Image(systemName: "dollarsign.arrow.circlepath")
+                            }
+                            Text(viewModel.isLoading ? "Calculating..." : "Calculate Route Cost")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(viewModel.canCalculate ? Color.blue : Color.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(!viewModel.canCalculate || viewModel.isLoading)
+
+                    // Error Message
+                    if let error = viewModel.errorMessage {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                            Text(error)
+                                .font(.subheadline)
+                                .foregroundColor(.red)
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+
+                    // Results Section
+                    if viewModel.showingResults {
+                        CostSummaryView(viewModel: viewModel)
+
+                        // Action Buttons
+                        HStack(spacing: 12) {
+                            Button(action: shareQuote) {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.up")
+                                    Text("Share")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(.secondarySystemBackground))
+                                .foregroundColor(.primary)
+                                .cornerRadius(10)
+                            }
+
+                            Button(action: viewModel.reset) {
+                                HStack {
+                                    Image(systemName: "arrow.counterclockwise")
+                                    Text("New Route")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue.opacity(0.1))
+                                .foregroundColor(.blue)
+                                .cornerRadius(10)
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Route Cost Calculator")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingSettings = true }) {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(viewModel: viewModel)
+            }
+        }
+    }
+
+    private func shareQuote() {
+        guard let route = viewModel.route else { return }
+
+        let breakdown = viewModel.costBreakdown
+        let quote = """
+        Truck Route Cost Quote
+        ----------------------
+        From: \(route.origin)
+        To: \(route.destination)
+        Distance: \(Int(route.distanceMiles)) miles
+
+        Cost Breakdown:
+        - Fuel: $\(String(format: "%.2f", breakdown.fuelCost))
+        - Tolls: $\(String(format: "%.2f", breakdown.tollCost))
+        - Overnight (\(breakdown.numberOfNights) nights): $\(String(format: "%.2f", breakdown.overnightCost))
+
+        TOTAL: $\(String(format: "%.2f", breakdown.totalCost))
+        Cost per mile: $\(String(format: "%.2f", breakdown.costPerMile))
+
+        Generated by Truck Route Calculator
+        """
+
+        let activityVC = UIActivityViewController(
+            activityItems: [quote],
+            applicationActivities: nil
+        )
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            rootVC.present(activityVC, animated: true)
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
