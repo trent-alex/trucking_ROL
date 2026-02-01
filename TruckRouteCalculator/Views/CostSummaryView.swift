@@ -48,21 +48,34 @@ struct CostSummaryView: View {
 
             // Cost Items
             VStack(spacing: 12) {
-                CostItemRow(
-                    icon: "fuelpump.fill",
-                    iconColor: .orange,
-                    title: "Fuel",
-                    subtitle: String(format: "%.1f MPG @ $%.2f/gal", viewModel.effectiveMPG, viewModel.fuelPrice),
-                    amount: viewModel.costBreakdown.fuelCost
-                )
+                HStack {
+                    Image(systemName: "fuelpump.fill")
+                        .foregroundColor(.orange)
+                        .frame(width: 24)
 
-                CostItemRow(
-                    icon: "road.lanes",
-                    iconColor: .purple,
-                    title: "Tolls",
-                    subtitle: "Estimated toll costs",
-                    amount: viewModel.costBreakdown.tollCost
-                )
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 4) {
+                            Text("Fuel")
+                                .font(.subheadline)
+                            if viewModel.usingDefaultFuelPrice {
+                                Image(systemName: "wifi.slash")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                                    .help("EIA API unavailable — using default price")
+                            }
+                        }
+                        Text(String(format: "%.1f MPG @ $%.2f/gal", viewModel.effectiveMPG, viewModel.fuelPrice))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    Text(formatCurrency(viewModel.costBreakdown.fuelCost))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .monospacedDigit()
+                }
 
                 // Overnight Stays with stepper
                 HStack {
@@ -190,13 +203,14 @@ struct CostItemRow: View {
         origin: "Los Angeles, CA",
         destination: "New York, NY",
         distanceMiles: 2775,
-        tollInfo: TollInfo(estimatedCost: 156.50, tollSegments: []),
-        statesTraversed: ["CA", "AZ", "NM", "TX", "OK", "AR", "TN", "VA", "PA", "NJ", "NY"]
+        statesTraversed: ["CA", "AZ", "NM", "TX", "OK", "AR", "TN", "VA", "PA", "NJ", "NY"],
+        routePolyline: nil,
+        originCoordinate: nil,
+        destinationCoordinate: nil
     )
     viewModel.costBreakdown = CostBreakdown(
         distanceMiles: 2775,
         fuelCost: 1750.25,
-        tollCost: 156.50,
         overnightCost: 600,
         numberOfNights: 4
     )

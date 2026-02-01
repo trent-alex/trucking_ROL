@@ -3,12 +3,11 @@ import Foundation
 struct CostBreakdown {
     var distanceMiles: Double
     var fuelCost: Double
-    var tollCost: Double
     var overnightCost: Double
     var numberOfNights: Int
 
     var totalCost: Double {
-        fuelCost + tollCost + overnightCost
+        fuelCost + overnightCost
     }
 
     var costPerMile: Double {
@@ -19,7 +18,6 @@ struct CostBreakdown {
     static let empty = CostBreakdown(
         distanceMiles: 0,
         fuelCost: 0,
-        tollCost: 0,
         overnightCost: 0,
         numberOfNights: 0
     )

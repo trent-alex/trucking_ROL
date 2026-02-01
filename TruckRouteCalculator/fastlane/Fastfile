@@ -1,0 +1,49 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build the app for simulator"
+  lane :build do
+    gym(
+      scheme: "TruckRouteCalculator",
+      configuration: "Debug",
+      destination: "generic/platform=iOS Simulator",
+      clean: true,
+      skip_package_ipa: true,
+      skip_archive: true
+    )
+  end
+
+  desc "Run unit tests"
+  lane :test do
+    scan(
+      scheme: "TruckRouteCalculator",
+      devices: ["iPhone 15 Pro"],
+      configuration: "Debug",
+      clean: true,
+      code_coverage: true
+    )
+  end
+
+  desc "Build and test"
+  lane :build_and_test do
+    build
+    test
+  end
+
+  desc "Lint Swift code"
+  lane :lint do
+    swiftlint(
+      mode: :lint,
+      executable: "swiftlint",
+      reporter: "emoji"
+    )
+  end
+
+  desc "Fix SwiftLint warnings"
+  lane :lint_fix do
+    swiftlint(
+      mode: :autocorrect,
+      executable: "swiftlint"
+    )
+  end
+end

@@ -3,12 +3,8 @@ import SwiftUI
 struct LoadConfigView: View {
     @ObservedObject var viewModel: RouteCalculatorViewModel
 
-    private let weightFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }()
+    @State private var emptyWeightText: String = ""
+    @State private var loadWeightText: String = ""
 
     var body: some View {
         VStack(spacing: 16) {
@@ -28,9 +24,15 @@ struct LoadConfigView: View {
                     .foregroundColor(.secondary)
 
                 HStack {
-                    TextField("Weight", value: $viewModel.emptyTruckWeight, formatter: weightFormatter)
+                    TextField("Weight", text: $emptyWeightText)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.numberPad)
+                        .onSubmit { commitEmptyWeight() }
+                        .onChange(of: emptyWeightText) {
+                            if let val = Double(emptyWeightText) {
+                                viewModel.emptyTruckWeight = val
+                            }
+                        }
                     Text("lbs")
                         .foregroundColor(.secondary)
                 }
@@ -43,9 +45,15 @@ struct LoadConfigView: View {
                     .foregroundColor(.secondary)
 
                 HStack {
-                    TextField("Weight", value: $viewModel.loadWeight, formatter: weightFormatter)
+                    TextField("Weight", text: $loadWeightText)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.numberPad)
+                        .onSubmit { commitLoadWeight() }
+                        .onChange(of: loadWeightText) {
+                            if let val = Double(loadWeightText) {
+                                viewModel.loadWeight = val
+                            }
+                        }
                     Text("lbs")
                         .foregroundColor(.secondary)
                 }
@@ -91,6 +99,28 @@ struct LoadConfigView: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(radius: 2)
+        .onAppear {
+            emptyWeightText = formatWeight(viewModel.emptyTruckWeight)
+            loadWeightText = formatWeight(viewModel.loadWeight)
+        }
+    }
+
+    private func commitEmptyWeight() {
+        if let val = Double(emptyWeightText) {
+            viewModel.emptyTruckWeight = val
+        }
+        emptyWeightText = formatWeight(viewModel.emptyTruckWeight)
+    }
+
+    private func commitLoadWeight() {
+        if let val = Double(loadWeightText) {
+            viewModel.loadWeight = val
+        }
+        loadWeightText = formatWeight(viewModel.loadWeight)
+    }
+
+    private func formatWeight(_ value: Double) -> String {
+        "\(Int(value))"
     }
 }
 

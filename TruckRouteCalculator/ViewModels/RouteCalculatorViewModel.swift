@@ -1,13 +1,14 @@
 import Foundation
 import SwiftUI
+import Combine
 
 @MainActor
 class RouteCalculatorViewModel: ObservableObject {
     // MARK: - Route Input
     @Published var origin: String = ""
     @Published var destination: String = ""
-    @Published var originSuggestions: [PlaceSuggestion] = []
-    @Published var destinationSuggestions: [PlaceSuggestion] = []
+    @Published var originSuggestions: [LocationSuggestion] = []
+    @Published var destinationSuggestions: [LocationSuggestion] = []
 
     // MARK: - Load Configuration
     @Published var emptyTruckWeight: Double = Constants.defaultBaseWeight
@@ -33,16 +34,32 @@ class RouteCalculatorViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showingResults: Bool = false
 
+    // MARK: - Fuel Price Source
+    @Published var usingDefaultFuelPrice: Bool = false
+
     // MARK: - Services
-    private let googleMapsService: GoogleMapsService
+    private let appleMapService: AppleMapService
+    private let fuelPriceService: FuelPriceService
     private var costCalculator: CostCalculator
 
     // MARK: - Debounce
     private var searchTask: Task<Void, Never>?
 
     init() {
-        self.googleMapsService = GoogleMapsService()
+        self.appleMapService = AppleMapService()
+        self.fuelPriceService = FuelPriceService()
         self.costCalculator = CostCalculator()
+        Task { await fetchFuelPrice() }
+    }
+
+    private func fetchFuelPrice() async {
+        if let price = await fuelPriceService.fetchDieselPrice() {
+            self.fuelPrice = price
+            self.usingDefaultFuelPrice = false
+        } else {
+            self.fuelPrice = Constants.defaultFuelPrice
+            self.usingDefaultFuelPrice = true
+        }
     }
 
     // MARK: - Computed Properties
@@ -73,29 +90,24 @@ class RouteCalculatorViewModel: ObservableObject {
         }
     }
 
-    private func searchPlaces(query: String, completion: @escaping ([PlaceSuggestion]) -> Void) {
+    private func searchPlaces(query: String, completion: @escaping ([LocationSuggestion]) -> Void) {
         searchTask?.cancel()
         searchTask = Task {
             // Debounce
             try? await Task.sleep(nanoseconds: 300_000_000)
             guard !Task.isCancelled else { return }
 
-            do {
-                let suggestions = try await googleMapsService.fetchPlaceSuggestions(query: query)
-                completion(suggestions)
-            } catch {
-                completion([])
-            }
+            appleMapService.searchPlaces(query: query, completion: completion)
         }
     }
 
-    func selectOrigin(_ suggestion: PlaceSuggestion) {
-        origin = suggestion.description
+    func selectOrigin(_ suggestion: LocationSuggestion) {
+        origin = suggestion.displayText
         originSuggestions = []
     }
 
-    func selectDestination(_ suggestion: PlaceSuggestion) {
-        destination = suggestion.description
+    func selectDestination(_ suggestion: LocationSuggestion) {
+        destination = suggestion.displayText
         destinationSuggestions = []
     }
 
@@ -109,7 +121,7 @@ class RouteCalculatorViewModel: ObservableObject {
 
         Task {
             do {
-                let fetchedRoute = try await googleMapsService.fetchRoute(
+                let fetchedRoute = try await appleMapService.fetchRoute(
                     from: origin,
                     to: destination
                 )
@@ -139,13 +151,11 @@ class RouteCalculatorViewModel: ObservableObject {
     func calculateCosts() {
         guard let route = route else { return }
 
-        let tollCost = route.tollInfo?.estimatedCost ?? 0
         suggestedNights = costCalculator.calculateSuggestedNights(distanceMiles: route.distanceMiles)
 
         costBreakdown = costCalculator.calculateCostBreakdown(
             distanceMiles: route.distanceMiles,
             totalWeight: totalWeight,
-            tollCost: tollCost,
             overnightNightsOverride: overnightNightsOverride
         )
     }

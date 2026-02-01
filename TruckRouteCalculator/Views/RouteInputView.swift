@@ -14,7 +14,7 @@ struct RouteInputView: View {
                 TextField("Enter pickup location", text: $viewModel.origin)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .autocapitalization(.words)
-                    .onChange(of: viewModel.origin) { _ in
+                    .onChange(of: viewModel.origin) {
                         viewModel.searchOrigin()
                     }
 
@@ -36,7 +36,7 @@ struct RouteInputView: View {
                 TextField("Enter delivery location", text: $viewModel.destination)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .autocapitalization(.words)
-                    .onChange(of: viewModel.destination) { _ in
+                    .onChange(of: viewModel.destination) {
                         viewModel.searchDestination()
                     }
 
@@ -57,8 +57,8 @@ struct RouteInputView: View {
 }
 
 struct SuggestionsListView: View {
-    let suggestions: [PlaceSuggestion]
-    let onSelect: (PlaceSuggestion) -> Void
+    let suggestions: [LocationSuggestion]
+    let onSelect: (LocationSuggestion) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -67,10 +67,18 @@ struct SuggestionsListView: View {
                     HStack {
                         Image(systemName: "mappin")
                             .foregroundColor(.gray)
-                        Text(suggestion.description)
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
+                        VStack(alignment: .leading) {
+                            Text(suggestion.title)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+                            if !suggestion.subtitle.isEmpty {
+                                Text(suggestion.subtitle)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
                         Spacer()
                     }
                     .padding(.vertical, 10)

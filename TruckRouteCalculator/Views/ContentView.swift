@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 struct ContentView: View {
     @StateObject private var viewModel = RouteCalculatorViewModel()
@@ -6,86 +7,30 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Route Input Section
-                    RouteInputView(viewModel: viewModel)
-
-                    // Load Configuration Section
-                    LoadConfigView(viewModel: viewModel)
-
-                    // Calculate Button
-                    Button(action: viewModel.calculateRoute) {
-                        HStack {
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            } else {
-                                Image(systemName: "dollarsign.arrow.circlepath")
-                            }
-                            Text(viewModel.isLoading ? "Calculating..." : "Calculate Route Cost")
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(viewModel.canCalculate ? Color.blue : Color.gray)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                    }
-                    .disabled(!viewModel.canCalculate || viewModel.isLoading)
-
-                    // Error Message
-                    if let error = viewModel.errorMessage {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text(error)
-                                .font(.subheadline)
-                                .foregroundColor(.red)
-                        }
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-
-                    // Results Section
+            Group {
+                if viewModel.showingResults,
+                   let route = viewModel.route,
+                   let polyline = route.routePolyline,
+                   let originCoord = route.originCoordinate,
+                   let destCoord = route.destinationCoordinate {
+                    mapResultsView(polyline: polyline, originCoord: originCoord, destCoord: destCoord)
+                } else {
+                    inputFormView
+                }
+            }
+            .navigationTitle("Route Cost Calculator")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
                     if viewModel.showingResults {
-                        CostSummaryView(viewModel: viewModel)
-
-                        // Action Buttons
-                        HStack(spacing: 12) {
-                            Button(action: shareQuote) {
-                                HStack {
-                                    Image(systemName: "square.and.arrow.up")
-                                    Text("Share")
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(.secondarySystemBackground))
-                                .foregroundColor(.primary)
-                                .cornerRadius(10)
-                            }
-
-                            Button(action: viewModel.reset) {
-                                HStack {
-                                    Image(systemName: "arrow.counterclockwise")
-                                    Text("New Route")
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue.opacity(0.1))
-                                .foregroundColor(.blue)
-                                .cornerRadius(10)
+                        Button(action: viewModel.reset) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                Text("New Route")
                             }
                         }
                     }
                 }
-                .padding()
-            }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Route Cost Calculator")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingSettings = true }) {
                         Image(systemName: "gear")
@@ -97,6 +42,122 @@ struct ContentView: View {
             }
         }
     }
+
+    // MARK: - Input Form
+
+    private var inputFormView: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                RouteInputView(viewModel: viewModel)
+                LoadConfigView(viewModel: viewModel)
+
+                // Calculate Button
+                Button(action: viewModel.calculateRoute) {
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "dollarsign.arrow.circlepath")
+                        }
+                        Text(viewModel.isLoading ? "Calculating..." : "Calculate Route Cost")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(viewModel.canCalculate ? Color.blue : Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .disabled(!viewModel.canCalculate || viewModel.isLoading)
+
+                // Error Message
+                if let error = viewModel.errorMessage {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.red)
+                    }
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(8)
+                }
+            }
+            .padding()
+        }
+        .background(Color(.systemGroupedBackground))
+    }
+
+    // MARK: - Map Results
+
+    private func mapResultsView(polyline: MKPolyline, originCoord: CLLocationCoordinate2D, destCoord: CLLocationCoordinate2D) -> some View {
+        ZStack(alignment: .bottom) {
+            RouteMapView(
+                polyline: polyline,
+                originCoordinate: originCoord,
+                destinationCoordinate: destCoord
+            )
+            .edgesIgnoringSafeArea(.bottom)
+
+            // Bottom cost pane
+            bottomCostPane
+        }
+    }
+
+    private var bottomCostPane: some View {
+        VStack(spacing: 12) {
+            // Drag indicator
+            Capsule()
+                .fill(Color(.systemGray4))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+
+            ScrollView {
+                VStack(spacing: 16) {
+                    CostSummaryView(viewModel: viewModel)
+
+                    // Action Buttons
+                    HStack(spacing: 12) {
+                        Button(action: shareQuote) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.up")
+                                Text("Share")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .foregroundColor(.primary)
+                            .cornerRadius(10)
+                        }
+
+                        Button(action: viewModel.reset) {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("New Route")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue.opacity(0.1))
+                            .foregroundColor(.blue)
+                            .cornerRadius(10)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 16)
+            }
+            .frame(maxHeight: 340)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.15), radius: 10, y: -5)
+        )
+    }
+
+    // MARK: - Share
 
     private func shareQuote() {
         guard let route = viewModel.route else { return }
@@ -111,7 +172,6 @@ struct ContentView: View {
 
         Cost Breakdown:
         - Fuel: $\(String(format: "%.2f", breakdown.fuelCost))
-        - Tolls: $\(String(format: "%.2f", breakdown.tollCost))
         - Overnight (\(breakdown.numberOfNights) nights): $\(String(format: "%.2f", breakdown.overnightCost))
 
         TOTAL: $\(String(format: "%.2f", breakdown.totalCost))

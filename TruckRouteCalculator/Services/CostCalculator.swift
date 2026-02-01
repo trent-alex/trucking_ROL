@@ -68,7 +68,6 @@ class CostCalculator {
     func calculateCostBreakdown(
         distanceMiles: Double,
         totalWeight: Double,
-        tollCost: Double,
         overnightNightsOverride: Int? = nil
     ) -> CostBreakdown {
         let fuelCost = calculateFuelCost(distanceMiles: distanceMiles, totalWeight: totalWeight)
@@ -79,7 +78,6 @@ class CostCalculator {
         return CostBreakdown(
             distanceMiles: distanceMiles,
             fuelCost: fuelCost,
-            tollCost: tollCost,
             overnightCost: overnightCost,
             numberOfNights: nights
         )

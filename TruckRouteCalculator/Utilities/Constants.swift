@@ -2,8 +2,7 @@ import Foundation
 
 enum Constants {
     // MARK: - API Configuration
-    // Replace with your Google Maps API key
-    static let googleMapsAPIKey = "YOUR_GOOGLE_MAPS_API_KEY"
+    static let eiaAPIKey = "YOUR_EIA_API_KEY"
 
     // MARK: - Fuel Calculation Defaults
     static let defaultBaseMPG: Double = 7.0
