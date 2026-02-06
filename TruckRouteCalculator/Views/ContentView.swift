@@ -1,9 +1,12 @@
 import SwiftUI
+import SwiftData
 import MapKit
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = RouteCalculatorViewModel()
     @State private var showingSettings = false
+    @State private var showingHistory = false
 
     var body: some View {
         NavigationView {
@@ -32,13 +35,23 @@ struct ContentView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingSettings = true }) {
-                        Image(systemName: "gear")
+                    HStack(spacing: 16) {
+                        if !viewModel.showingResults {
+                            Button(action: { showingHistory = true }) {
+                                Image(systemName: "clock.arrow.circlepath")
+                            }
+                        }
+                        Button(action: { showingSettings = true }) {
+                            Image(systemName: "gear")
+                        }
                     }
                 }
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showingHistory) {
+                RouteHistoryView(viewModel: viewModel)
             }
         }
     }
@@ -132,6 +145,19 @@ struct ContentView: View {
                             .cornerRadius(10)
                         }
 
+                        Button(action: { viewModel.saveCurrentRoute(context: modelContext) }) {
+                            HStack {
+                                Image(systemName: viewModel.routeSaved ? "checkmark" : "square.and.arrow.down")
+                                Text(viewModel.routeSaved ? "Saved" : "Save")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(viewModel.routeSaved ? Color.green.opacity(0.15) : Color(.secondarySystemBackground))
+                            .foregroundColor(viewModel.routeSaved ? .green : .primary)
+                            .cornerRadius(10)
+                        }
+                        .disabled(viewModel.routeSaved)
+
                         Button(action: viewModel.reset) {
                             HStack {
                                 Image(systemName: "arrow.counterclockwise")
@@ -148,7 +174,7 @@ struct ContentView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 16)
             }
-            .frame(maxHeight: 340)
+            .frame(maxHeight: 440)
         }
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)

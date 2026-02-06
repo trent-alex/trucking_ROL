@@ -1,5 +1,7 @@
 import Foundation
 import SwiftUI
+import SwiftData
+import CoreLocation
 import Combine
 
 @MainActor
@@ -33,6 +35,7 @@ class RouteCalculatorViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var showingResults: Bool = false
+    @Published var routeSaved: Bool = false
 
     // MARK: - Fuel Price Source
     @Published var usingDefaultFuelPrice: Bool = false
@@ -179,5 +182,49 @@ class RouteCalculatorViewModel: ObservableObject {
         suggestedNights = 0
         showingResults = false
         errorMessage = nil
+        routeSaved = false
+    }
+
+    // MARK: - Route History
+
+    func saveCurrentRoute(context: ModelContext) {
+        guard let route = route else { return }
+
+        let saved = SavedRoute(
+            origin: route.origin,
+            destination: route.destination,
+            distanceMiles: route.distanceMiles,
+            statesTraversed: route.statesTraversed,
+            originLatitude: route.originCoordinate?.latitude ?? 0,
+            originLongitude: route.originCoordinate?.longitude ?? 0,
+            destinationLatitude: route.destinationCoordinate?.latitude ?? 0,
+            destinationLongitude: route.destinationCoordinate?.longitude ?? 0,
+            fuelCost: costBreakdown.fuelCost,
+            overnightCost: costBreakdown.overnightCost,
+            numberOfNights: costBreakdown.numberOfNights,
+            totalCost: costBreakdown.totalCost,
+            costPerMile: costBreakdown.costPerMile,
+            emptyTruckWeight: emptyTruckWeight,
+            loadWeight: loadWeight,
+            baseMPG: baseMPG,
+            effectiveMPG: effectiveMPG,
+            fuelPrice: fuelPrice,
+            nightlyRate: nightlyRate
+        )
+
+        context.insert(saved)
+        routeSaved = true
+    }
+
+    func loadSavedRoute(_ saved: SavedRoute) {
+        origin = saved.origin
+        destination = saved.destination
+        emptyTruckWeight = saved.emptyTruckWeight
+        loadWeight = saved.loadWeight
+        baseMPG = saved.baseMPG
+        fuelPrice = saved.fuelPrice
+        nightlyRate = saved.nightlyRate
+        routeSaved = false
+        calculateRoute()
     }
 }

@@ -13,8 +13,14 @@ struct RouteMapView: View {
         return (0..<polyline.pointCount).map { points[$0].coordinate }
     }
 
+    private var fitRegion: MKCoordinateRegion {
+        let rect = polyline.boundingMapRect
+        let padded = rect.insetBy(dx: -rect.size.width * 0.15, dy: -rect.size.height * 0.15)
+        return MKCoordinateRegion(padded)
+    }
+
     var body: some View {
-        Map(position: $position) {
+        Map(position: $position, interactionModes: [.pan, .zoom]) {
             MapPolyline(coordinates: coordinates)
                 .stroke(.blue, lineWidth: 5)
 
@@ -27,6 +33,9 @@ struct RouteMapView: View {
         .mapControls {
             MapCompass()
             MapScaleView()
+        }
+        .onAppear {
+            position = .region(fitRegion)
         }
     }
 }
