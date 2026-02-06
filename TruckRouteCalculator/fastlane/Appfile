@@ -1,5 +1,5 @@
 app_identifier("com.pivotallift.TruckRouteCalculator")
-apple_id("trentonralexander@icloud.com")
+apple_id("helpnow@pivotallift.com")
 
 # For more information about the Appfile, see:
 #     https://docs.fastlane.tools/advanced/#appfile
