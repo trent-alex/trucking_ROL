@@ -1,0 +1,7 @@
+Initial release of Truck Route Calculator.
+
+• Calculate fuel costs based on route distance and truck weight
+• Automatic overnight stay suggestions based on DOT Hours of Service
+• Live diesel fuel prices from EIA
+• Save and reload route history
+• Share cost quotes with one tap

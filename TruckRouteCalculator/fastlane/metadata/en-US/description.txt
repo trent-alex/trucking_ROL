@@ -1,0 +1,34 @@
+Calculate the true cost of any trucking route before you hit the road.
+
+Truck Route Calculator helps truck drivers and fleet operators estimate fuel costs, overnight stays, and total trip expenses with precision.
+
+KEY FEATURES:
+
+• Real-Time Route Calculation
+Enter your origin and destination to get accurate distance and route information powered by Apple Maps.
+
+• Smart Fuel Cost Estimation
+Calculates fuel costs based on your truck's weight, load, and actual fuel efficiency. Heavier loads? The app automatically adjusts MPG using industry-standard formulas.
+
+• Overnight Stay Planning
+Automatically suggests overnight stops based on DOT Hours of Service regulations (550 miles/day at 50 mph average). Adjust manually if needed.
+
+• Live Fuel Prices
+Fetches current diesel prices from the U.S. Energy Information Administration for accurate estimates.
+
+• Cost Breakdown
+See exactly where your money goes: fuel costs, overnight stays, total cost, and cost per mile.
+
+• Save & Share
+Save routes for future reference. Share detailed cost quotes with dispatchers or clients.
+
+• Route History
+Access your saved routes anytime. Reload previous calculations with one tap.
+
+PERFECT FOR:
+- Owner-operators calculating job profitability
+- Fleet managers estimating trip costs
+- Dispatchers creating accurate quotes
+- Trucking companies planning routes
+
+All calculations stay on your device. No account required.

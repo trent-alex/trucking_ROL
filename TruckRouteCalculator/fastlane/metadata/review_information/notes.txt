@@ -1,0 +1,3 @@
+No login required. Simply enter origin and destination addresses to calculate route costs.
+
+The app uses Apple Maps for routing and the U.S. Energy Information Administration API for diesel fuel prices (falls back to default price if unavailable).
