@@ -2,7 +2,7 @@ import Foundation
 
 enum Constants {
     // MARK: - API Configuration
-    static let eiaAPIKey = "YOUR_EIA_API_KEY"
+    static let eiaAPIKey = "2nBpAfe0Ol29zQ4H0lGRkvmpWfO0ZWMU3UQKdaEY"
 
     // MARK: - Fuel Calculation Defaults
     static let defaultBaseMPG: Double = 7.0
