@@ -62,9 +62,14 @@ struct CostSummaryView: View {
                                     .font(.caption2)
                                     .foregroundColor(.orange)
                                     .help("EIA API unavailable — using default price")
+                            } else if viewModel.fuelPriceFromCache {
+                                Image(systemName: "arrow.clockwise.circle")
+                                    .font(.caption2)
+                                    .foregroundColor(.blue)
+                                    .help("Using cached price")
                             }
                         }
-                        Text(String(format: "%.1f MPG @ $%.2f/gal", viewModel.effectiveMPG, viewModel.fuelPrice))
+                        Text(String(format: "%.1f MPG @ $%.2f/gal (%@)", viewModel.effectiveMPG, viewModel.fuelPrice, viewModel.fuelPriceRegion))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

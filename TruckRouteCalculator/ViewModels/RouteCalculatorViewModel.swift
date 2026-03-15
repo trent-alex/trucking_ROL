@@ -39,6 +39,8 @@ class RouteCalculatorViewModel: ObservableObject {
 
     // MARK: - Fuel Price Source
     @Published var usingDefaultFuelPrice: Bool = false
+    @Published var fuelPriceRegion: String = "National Average"
+    @Published var fuelPriceFromCache: Bool = false
 
     // MARK: - Services
     private let appleMapService: AppleMapService
@@ -55,14 +57,43 @@ class RouteCalculatorViewModel: ObservableObject {
         Task { await fetchFuelPrice() }
     }
 
-    private func fetchFuelPrice() async {
-        if let price = await fuelPriceService.fetchDieselPrice() {
-            self.fuelPrice = price
-            self.usingDefaultFuelPrice = false
-        } else {
-            self.fuelPrice = Constants.defaultFuelPrice
-            self.usingDefaultFuelPrice = true
+    private func fetchFuelPrice(forState state: String? = nil) async {
+        let result = await fuelPriceService.getDieselPrice(forState: state)
+        self.fuelPrice = result.price
+        self.fuelPriceRegion = result.region
+        self.fuelPriceFromCache = result.fromCache
+        self.usingDefaultFuelPrice = (result.region == "Default")
+    }
+
+    /// Refresh fuel prices from API (clears cache)
+    func refreshFuelPrices() async {
+        fuelPriceService.clearCache()
+        await fetchFuelPrice(forState: extractState(from: origin))
+    }
+
+    /// Extract state abbreviation from address string
+    private func extractState(from address: String) -> String? {
+        // Common patterns: "City, ST", "City, ST 12345", "City, State"
+        let stateAbbreviations = [
+            "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+            "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+            "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+            "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+            "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC"
+        ]
+
+        let components = address.components(separatedBy: ",")
+        for component in components.reversed() {
+            let trimmed = component.trimmingCharacters(in: .whitespaces)
+            let words = trimmed.components(separatedBy: " ")
+            for word in words {
+                let upper = word.uppercased()
+                if stateAbbreviations.contains(upper) {
+                    return upper
+                }
+            }
         }
+        return nil
     }
 
     // MARK: - Computed Properties
@@ -124,6 +155,10 @@ class RouteCalculatorViewModel: ObservableObject {
 
         Task {
             do {
+                // Fetch regional fuel price based on origin state
+                let originState = extractState(from: origin)
+                await fetchFuelPrice(forState: originState)
+
                 let fetchedRoute = try await appleMapService.fetchRoute(
                     from: origin,
                     to: destination
