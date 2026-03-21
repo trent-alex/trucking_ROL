@@ -1,0 +1,700 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		43C63BB22F2BCAA100643D30 /* CostSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAD2F2BCAA100643D30 /* CostSummaryView.swift */; };
+		43C63BB32F2BCAA100643D30 /* RouteCalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAA2F2BCAA100643D30 /* RouteCalculatorViewModel.swift */; };
+		43C63BB42F2BCAA100643D30 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAC2F2BCAA100643D30 /* ContentView.swift */; };
+		43C63BB52F2BCAA100643D30 /* LoadConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA12F2BCAA100643D30 /* LoadConfig.swift */; };
+		43C63BB62F2BCAA100643D30 /* AppleMapService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA52F2BCAA100643D30 /* AppleMapService.swift */; };
+		43C63BB72F2BCAA100643D30 /* CostCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA42F2BCAA100643D30 /* CostCalculator.swift */; };
+		43C63BB82F2BCAA100643D30 /* Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA22F2BCAA100643D30 /* Route.swift */; };
+		43C63BB92F2BCAA100643D30 /* LoadConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAE2F2BCAA100643D30 /* LoadConfigView.swift */; };
+		43C63BBA2F2BCAA100643D30 /* CostBreakdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA02F2BCAA100643D30 /* CostBreakdown.swift */; };
+		43C63BBB2F2BCAA100643D30 /* RouteInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAF2F2BCAA100643D30 /* RouteInputView.swift */; };
+		43C63BBC2F2BCAA100643D30 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA82F2BCAA100643D30 /* Constants.swift */; };
+		43C63BBD2F2BCAA100643D30 /* TruckRouteCalculatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA72F2BCAA100643D30 /* TruckRouteCalculatorApp.swift */; };
+		43C63BBE2F2BCAA100643D30 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BB02F2BCAA100643D30 /* SettingsView.swift */; };
+		43C63BC02F2BCAA100643D30 /* FuelPriceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BA62F2BCAA200643D30 /* FuelPriceService.swift */; };
+		43C63BC12F2BCAA300643D30 /* RouteMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC22F2BCAA300643D30 /* RouteMapView.swift */; };
+		43C63BC52F2BCAA400643D30 /* SavedRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC32F2BCAA400643D30 /* SavedRoute.swift */; };
+		43C63BC62F2BCAA400643D30 /* RouteHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		43C63B842F2B026800643D30 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 43C63B6E2F2B026600643D30 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43C63B752F2B026600643D30;
+			remoteInfo = TruckRouteCalculator;
+		};
+		43C63B8E2F2B026800643D30 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 43C63B6E2F2B026600643D30 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43C63B752F2B026600643D30;
+			remoteInfo = TruckRouteCalculator;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		43C63B762F2B026600643D30 /* TruckRouteCalculator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TruckRouteCalculator.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		43C63B832F2B026800643D30 /* TruckRouteCalculatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TruckRouteCalculatorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		43C63B8D2F2B026800643D30 /* TruckRouteCalculatorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TruckRouteCalculatorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		43C63BA02F2BCAA100643D30 /* CostBreakdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostBreakdown.swift; sourceTree = "<group>"; };
+		43C63BA12F2BCAA100643D30 /* LoadConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadConfig.swift; sourceTree = "<group>"; };
+		43C63BA22F2BCAA100643D30 /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Route.swift; sourceTree = "<group>"; };
+		43C63BA42F2BCAA100643D30 /* CostCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostCalculator.swift; sourceTree = "<group>"; };
+		43C63BA52F2BCAA100643D30 /* AppleMapService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMapService.swift; sourceTree = "<group>"; };
+		43C63BA62F2BCAA200643D30 /* FuelPriceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuelPriceService.swift; sourceTree = "<group>"; };
+		43C63BA72F2BCAA100643D30 /* TruckRouteCalculatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruckRouteCalculatorApp.swift; sourceTree = "<group>"; };
+		43C63BA82F2BCAA100643D30 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		43C63BAA2F2BCAA100643D30 /* RouteCalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteCalculatorViewModel.swift; sourceTree = "<group>"; };
+		43C63BAC2F2BCAA100643D30 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		43C63BAD2F2BCAA100643D30 /* CostSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostSummaryView.swift; sourceTree = "<group>"; };
+		43C63BAE2F2BCAA100643D30 /* LoadConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadConfigView.swift; sourceTree = "<group>"; };
+		43C63BAF2F2BCAA100643D30 /* RouteInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteInputView.swift; sourceTree = "<group>"; };
+		43C63BB02F2BCAA100643D30 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		43C63BC22F2BCAA300643D30 /* RouteMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMapView.swift; sourceTree = "<group>"; };
+		43C63BC32F2BCAA400643D30 /* SavedRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedRoute.swift; sourceTree = "<group>"; };
+		43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteHistoryView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		43C63B782F2B026600643D30 /* TruckRouteCalculator */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TruckRouteCalculator;
+			sourceTree = "<group>";
+		};
+		43C63B862F2B026800643D30 /* TruckRouteCalculatorTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TruckRouteCalculatorTests;
+			sourceTree = "<group>";
+		};
+		43C63B902F2B026800643D30 /* TruckRouteCalculatorUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TruckRouteCalculatorUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		43C63B732F2B026600643D30 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C63B802F2B026800643D30 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C63B8A2F2B026800643D30 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		43C63B6D2F2B026600643D30 = {
+			isa = PBXGroup;
+			children = (
+				43C63BA32F2BCAA100643D30 /* Models */,
+				43C63BA62F2BCAA100643D30 /* Services */,
+				43C63BA72F2BCAA100643D30 /* TruckRouteCalculatorApp.swift */,
+				43C63BA92F2BCAA100643D30 /* Utilities */,
+				43C63BAB2F2BCAA100643D30 /* ViewModels */,
+				43C63BB12F2BCAA100643D30 /* Views */,
+				43C63B782F2B026600643D30 /* TruckRouteCalculator */,
+				43C63B862F2B026800643D30 /* TruckRouteCalculatorTests */,
+				43C63B902F2B026800643D30 /* TruckRouteCalculatorUITests */,
+				43C63B772F2B026600643D30 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		43C63B772F2B026600643D30 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				43C63B762F2B026600643D30 /* TruckRouteCalculator.app */,
+				43C63B832F2B026800643D30 /* TruckRouteCalculatorTests.xctest */,
+				43C63B8D2F2B026800643D30 /* TruckRouteCalculatorUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		43C63BA32F2BCAA100643D30 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				43C63BA02F2BCAA100643D30 /* CostBreakdown.swift */,
+				43C63BA12F2BCAA100643D30 /* LoadConfig.swift */,
+				43C63BA22F2BCAA100643D30 /* Route.swift */,
+				43C63BC32F2BCAA400643D30 /* SavedRoute.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		43C63BA62F2BCAA100643D30 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				43C63BA42F2BCAA100643D30 /* CostCalculator.swift */,
+				43C63BA52F2BCAA100643D30 /* AppleMapService.swift */,
+				43C63BA62F2BCAA200643D30 /* FuelPriceService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		43C63BA92F2BCAA100643D30 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				43C63BA82F2BCAA100643D30 /* Constants.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		43C63BAB2F2BCAA100643D30 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				43C63BAA2F2BCAA100643D30 /* RouteCalculatorViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		43C63BB12F2BCAA100643D30 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				43C63BAC2F2BCAA100643D30 /* ContentView.swift */,
+				43C63BAD2F2BCAA100643D30 /* CostSummaryView.swift */,
+				43C63BAE2F2BCAA100643D30 /* LoadConfigView.swift */,
+				43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */,
+				43C63BAF2F2BCAA100643D30 /* RouteInputView.swift */,
+				43C63BC22F2BCAA300643D30 /* RouteMapView.swift */,
+				43C63BB02F2BCAA100643D30 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		43C63B752F2B026600643D30 /* TruckRouteCalculator */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43C63B972F2B026800643D30 /* Build configuration list for PBXNativeTarget "TruckRouteCalculator" */;
+			buildPhases = (
+				43C63B722F2B026600643D30 /* Sources */,
+				43C63B732F2B026600643D30 /* Frameworks */,
+				43C63B742F2B026600643D30 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				43C63B782F2B026600643D30 /* TruckRouteCalculator */,
+			);
+			name = TruckRouteCalculator;
+			packageProductDependencies = (
+			);
+			productName = TruckRouteCalculator;
+			productReference = 43C63B762F2B026600643D30 /* TruckRouteCalculator.app */;
+			productType = "com.apple.product-type.application";
+		};
+		43C63B822F2B026800643D30 /* TruckRouteCalculatorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43C63B9A2F2B026800643D30 /* Build configuration list for PBXNativeTarget "TruckRouteCalculatorTests" */;
+			buildPhases = (
+				43C63B7F2F2B026800643D30 /* Sources */,
+				43C63B802F2B026800643D30 /* Frameworks */,
+				43C63B812F2B026800643D30 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				43C63B852F2B026800643D30 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				43C63B862F2B026800643D30 /* TruckRouteCalculatorTests */,
+			);
+			name = TruckRouteCalculatorTests;
+			packageProductDependencies = (
+			);
+			productName = TruckRouteCalculatorTests;
+			productReference = 43C63B832F2B026800643D30 /* TruckRouteCalculatorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		43C63B8C2F2B026800643D30 /* TruckRouteCalculatorUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43C63B9D2F2B026800643D30 /* Build configuration list for PBXNativeTarget "TruckRouteCalculatorUITests" */;
+			buildPhases = (
+				43C63B892F2B026800643D30 /* Sources */,
+				43C63B8A2F2B026800643D30 /* Frameworks */,
+				43C63B8B2F2B026800643D30 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				43C63B8F2F2B026800643D30 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				43C63B902F2B026800643D30 /* TruckRouteCalculatorUITests */,
+			);
+			name = TruckRouteCalculatorUITests;
+			packageProductDependencies = (
+			);
+			productName = TruckRouteCalculatorUITests;
+			productReference = 43C63B8D2F2B026800643D30 /* TruckRouteCalculatorUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		43C63B6E2F2B026600643D30 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					43C63B752F2B026600643D30 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					43C63B822F2B026800643D30 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 43C63B752F2B026600643D30;
+					};
+					43C63B8C2F2B026800643D30 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 43C63B752F2B026600643D30;
+					};
+				};
+			};
+			buildConfigurationList = 43C63B712F2B026600643D30 /* Build configuration list for PBXProject "TruckRouteCalculator" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 43C63B6D2F2B026600643D30;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 43C63B772F2B026600643D30 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				43C63B752F2B026600643D30 /* TruckRouteCalculator */,
+				43C63B822F2B026800643D30 /* TruckRouteCalculatorTests */,
+				43C63B8C2F2B026800643D30 /* TruckRouteCalculatorUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		43C63B742F2B026600643D30 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C63B812F2B026800643D30 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C63B8B2F2B026800643D30 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		43C63B722F2B026600643D30 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43C63BB22F2BCAA100643D30 /* CostSummaryView.swift in Sources */,
+				43C63BB32F2BCAA100643D30 /* RouteCalculatorViewModel.swift in Sources */,
+				43C63BB42F2BCAA100643D30 /* ContentView.swift in Sources */,
+				43C63BB52F2BCAA100643D30 /* LoadConfig.swift in Sources */,
+				43C63BB62F2BCAA100643D30 /* AppleMapService.swift in Sources */,
+				43C63BB72F2BCAA100643D30 /* CostCalculator.swift in Sources */,
+				43C63BB82F2BCAA100643D30 /* Route.swift in Sources */,
+				43C63BB92F2BCAA100643D30 /* LoadConfigView.swift in Sources */,
+				43C63BBA2F2BCAA100643D30 /* CostBreakdown.swift in Sources */,
+				43C63BBB2F2BCAA100643D30 /* RouteInputView.swift in Sources */,
+				43C63BBC2F2BCAA100643D30 /* Constants.swift in Sources */,
+				43C63BBD2F2BCAA100643D30 /* TruckRouteCalculatorApp.swift in Sources */,
+				43C63BBE2F2BCAA100643D30 /* SettingsView.swift in Sources */,
+				43C63BC02F2BCAA100643D30 /* FuelPriceService.swift in Sources */,
+				43C63BC12F2BCAA300643D30 /* RouteMapView.swift in Sources */,
+				43C63BC52F2BCAA400643D30 /* SavedRoute.swift in Sources */,
+				43C63BC62F2BCAA400643D30 /* RouteHistoryView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C63B7F2F2B026800643D30 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C63B892F2B026800643D30 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		43C63B852F2B026800643D30 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43C63B752F2B026600643D30 /* TruckRouteCalculator */;
+			targetProxy = 43C63B842F2B026800643D30 /* PBXContainerItemProxy */;
+		};
+		43C63B8F2F2B026800643D30 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43C63B752F2B026600643D30 /* TruckRouteCalculator */;
+			targetProxy = 43C63B8E2F2B026800643D30 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		43C63B952F2B026800643D30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		43C63B962F2B026800643D30 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		43C63B982F2B026800643D30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				DEVELOPMENT_TEAM = 2FG27YDADD;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;\
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pivotallift.TruckRouteCalculator;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		43C63B992F2B026800643D30 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 9;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2FG27YDADD;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;\
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pivotallift.TruckRouteCalculator;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "TruckRouteCalculator AppStore";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		43C63B9B2F2B026800643D30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				GENERATE_INFOPLIST_FILE = YES;\
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pivotallift.TruckRouteCalculatorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TruckRouteCalculator.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TruckRouteCalculator";
+			};
+			name = Debug;
+		};
+		43C63B9C2F2B026800643D30 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				GENERATE_INFOPLIST_FILE = YES;\
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pivotallift.TruckRouteCalculatorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TruckRouteCalculator.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TruckRouteCalculator";
+			};
+			name = Release;
+		};
+		43C63B9E2F2B026800643D30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				GENERATE_INFOPLIST_FILE = YES;\
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pivotallift.TruckRouteCalculatorUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TruckRouteCalculator;
+			};
+			name = Debug;
+		};
+		43C63B9F2F2B026800643D30 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				GENERATE_INFOPLIST_FILE = YES;\
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pivotallift.TruckRouteCalculatorUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TruckRouteCalculator;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		43C63B712F2B026600643D30 /* Build configuration list for PBXProject "TruckRouteCalculator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43C63B952F2B026800643D30 /* Debug */,
+				43C63B962F2B026800643D30 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		43C63B972F2B026800643D30 /* Build configuration list for PBXNativeTarget "TruckRouteCalculator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43C63B982F2B026800643D30 /* Debug */,
+				43C63B992F2B026800643D30 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		43C63B9A2F2B026800643D30 /* Build configuration list for PBXNativeTarget "TruckRouteCalculatorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43C63B9B2F2B026800643D30 /* Debug */,
+				43C63B9C2F2B026800643D30 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		43C63B9D2F2B026800643D30 /* Build configuration list for PBXNativeTarget "TruckRouteCalculatorUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43C63B9E2F2B026800643D30 /* Debug */,
+				43C63B9F2F2B026800643D30 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 43C63B6E2F2B026600643D30 /* Project object */;
+}

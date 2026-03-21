@@ -4,10 +4,9 @@
 # macOS
 .DS_Store
 
-# Xcode
-*.xcodeproj/
-*.xcworkspace/
+# Xcode user data (keep project files)
 xcuserdata/
+*.xcworkspace/xcuserdata/
 DerivedData/
 *.moved-aside
 *.pbxuser
