@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var viewModel = RouteCalculatorViewModel()
     @State private var showingSettings = false
     @State private var showingHistory = false
+    @State private var showingOnboarding = !DriverProfile.hasCompletedOnboarding
 
     var body: some View {
         NavigationView {
@@ -52,6 +53,11 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingHistory) {
                 RouteHistoryView(viewModel: viewModel)
+            }
+            .fullScreenCover(isPresented: $showingOnboarding) {
+                ProfileSetupView(isPresented: $showingOnboarding) { profile in
+                    viewModel.applyProfile(profile)
+                }
             }
         }
     }

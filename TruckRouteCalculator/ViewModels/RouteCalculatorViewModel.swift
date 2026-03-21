@@ -42,6 +42,9 @@ class RouteCalculatorViewModel: ObservableObject {
     @Published var fuelPriceRegion: String = "National Average"
     @Published var fuelPriceFromCache: Bool = false
 
+    // MARK: - Driver Profile
+    @Published var driverProfile: DriverProfile?
+
     // MARK: - Services
     private let appleMapService: AppleMapService
     private let fuelPriceService: FuelPriceService
@@ -54,7 +57,22 @@ class RouteCalculatorViewModel: ObservableObject {
         self.appleMapService = AppleMapService()
         self.fuelPriceService = FuelPriceService()
         self.costCalculator = CostCalculator()
+
+        // Load driver profile if exists
+        if let profile = DriverProfile.load() {
+            self.driverProfile = profile
+            self.baseMPG = profile.baseMPG
+            self.emptyTruckWeight = profile.estimatedEmptyWeight
+        }
+
         Task { await fetchFuelPrice() }
+    }
+
+    /// Apply driver profile settings
+    func applyProfile(_ profile: DriverProfile) {
+        self.driverProfile = profile
+        self.baseMPG = profile.baseMPG
+        self.emptyTruckWeight = profile.estimatedEmptyWeight
     }
 
     private func fetchFuelPrice(forState state: String? = nil) async {

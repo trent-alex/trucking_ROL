@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+*.swp
+
+# Xcode
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.xcuserstate
+*.xcworkspace
+
+# Build outputs
+*.ipa
+*.dSYM.zip
+
+# Fastlane
+fastlane/api_key.json
+fastlane/report.xml
+fastlane/README.md
+
+# Misc
+.claude-code/
+*.zip

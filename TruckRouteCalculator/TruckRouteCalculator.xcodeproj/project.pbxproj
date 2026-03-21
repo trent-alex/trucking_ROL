@@ -24,6 +24,8 @@
 		43C63BC12F2BCAA300643D30 /* RouteMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC22F2BCAA300643D30 /* RouteMapView.swift */; };
 		43C63BC52F2BCAA400643D30 /* SavedRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC32F2BCAA400643D30 /* SavedRoute.swift */; };
 		43C63BC62F2BCAA400643D30 /* RouteHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */; };
+		43C63BC72F2BCAA500643D30 /* DriverProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC82F2BCAA500643D30 /* DriverProfile.swift */; };
+		43C63BC92F2BCAA600643D30 /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BCA2F2BCAA600643D30 /* ProfileSetupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +66,8 @@
 		43C63BC22F2BCAA300643D30 /* RouteMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMapView.swift; sourceTree = "<group>"; };
 		43C63BC32F2BCAA400643D30 /* SavedRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedRoute.swift; sourceTree = "<group>"; };
 		43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteHistoryView.swift; sourceTree = "<group>"; };
+		43C63BC82F2BCAA500643D30 /* DriverProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverProfile.swift; sourceTree = "<group>"; };
+		43C63BCA2F2BCAA600643D30 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -139,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				43C63BA02F2BCAA100643D30 /* CostBreakdown.swift */,
+				43C63BC82F2BCAA500643D30 /* DriverProfile.swift */,
 				43C63BA12F2BCAA100643D30 /* LoadConfig.swift */,
 				43C63BA22F2BCAA100643D30 /* Route.swift */,
 				43C63BC32F2BCAA400643D30 /* SavedRoute.swift */,
@@ -182,6 +187,7 @@
 				43C63BAF2F2BCAA100643D30 /* RouteInputView.swift */,
 				43C63BC22F2BCAA300643D30 /* RouteMapView.swift */,
 				43C63BB02F2BCAA100643D30 /* SettingsView.swift */,
+				43C63BCA2F2BCAA600643D30 /* ProfileSetupView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -347,6 +353,8 @@
 				43C63BC12F2BCAA300643D30 /* RouteMapView.swift in Sources */,
 				43C63BC52F2BCAA400643D30 /* SavedRoute.swift in Sources */,
 				43C63BC62F2BCAA400643D30 /* RouteHistoryView.swift in Sources */,
+				43C63BC72F2BCAA500643D30 /* DriverProfile.swift in Sources */,
+				43C63BC92F2BCAA600643D30 /* ProfileSetupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -505,7 +513,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = 2FG27YDADD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -540,7 +548,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2FG27YDADD;
 				ENABLE_PREVIEWS = YES;
@@ -576,7 +584,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -598,7 +606,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -619,7 +627,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				MARKETING_VERSION = 1.0;
@@ -639,7 +647,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				MARKETING_VERSION = 1.0;
