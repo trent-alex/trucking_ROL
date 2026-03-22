@@ -4,7 +4,7 @@ import MapKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var viewModel = RouteCalculatorViewModel()
+    @StateObject private var viewModel = ScenarioCalculatorViewModel()
     @State private var showingSettings = false
     @State private var showingHistory = false
     @State private var showingOnboarding = !DriverProfile.hasCompletedOnboarding
@@ -12,32 +12,28 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             Group {
-                if viewModel.showingResults,
-                   let route = viewModel.route,
-                   let polyline = route.routePolyline,
-                   let originCoord = route.originCoordinate,
-                   let destCoord = route.destinationCoordinate {
-                    mapResultsView(polyline: polyline, originCoord: originCoord, destCoord: destCoord)
+                if viewModel.showingResults, let scenario = viewModel.currentScenario {
+                    ScenarioResultsView(viewModel: viewModel, scenario: scenario)
                 } else {
-                    inputFormView
+                    ScenarioInputView(viewModel: viewModel)
                 }
             }
-            .navigationTitle("Route Cost Calculator")
+            .navigationTitle("Load Calculator")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     if viewModel.showingResults {
-                        Button(action: viewModel.reset) {
+                        Button(action: { viewModel.showingResults = false }) {
                             HStack(spacing: 4) {
                                 Image(systemName: "chevron.left")
-                                Text("New Route")
+                                Text("Edit")
                             }
                         }
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 16) {
-                        if !viewModel.showingResults {
+                        if !viewModel.scenarios.isEmpty {
                             Button(action: { showingHistory = true }) {
                                 Image(systemName: "clock.arrow.circlepath")
                             }
@@ -49,178 +45,177 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showingSettings) {
-                SettingsView(viewModel: viewModel)
+                ScenarioSettingsView(viewModel: viewModel) {
+                    // Save current calculation before resetting profile
+                    viewModel.saveCurrentScenario()
+                    // Reopen profile setup
+                    showingOnboarding = true
+                }
             }
             .sheet(isPresented: $showingHistory) {
-                RouteHistoryView(viewModel: viewModel)
+                ScenarioHistoryView(viewModel: viewModel)
             }
             .fullScreenCover(isPresented: $showingOnboarding) {
                 ProfileSetupView(isPresented: $showingOnboarding) { profile in
-                    viewModel.applyProfile(profile)
+                    viewModel.driverProfile = profile
                 }
             }
         }
     }
+}
 
-    // MARK: - Input Form
+// MARK: - Settings View
 
-    private var inputFormView: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                RouteInputView(viewModel: viewModel)
-                LoadConfigView(viewModel: viewModel)
+struct ScenarioSettingsView: View {
+    @ObservedObject var viewModel: ScenarioCalculatorViewModel
+    @Environment(\.dismiss) private var dismiss
+    var onResetProfile: (() -> Void)?
 
-                // Calculate Button
-                Button(action: viewModel.calculateRoute) {
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Fuel") {
                     HStack {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Image(systemName: "dollarsign.arrow.circlepath")
-                        }
-                        Text(viewModel.isLoading ? "Calculating..." : "Calculate Route Cost")
-                            .fontWeight(.semibold)
+                        Text("Fuel Price")
+                        Spacer()
+                        Text("$")
+                        TextField("0.00", value: $viewModel.fuelPrice, format: .number)
+                            .keyboardType(.decimalPad)
+                            .frame(width: 60)
+                            .multilineTextAlignment(.trailing)
+                        Text("/gal")
+                            .foregroundColor(.secondary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(viewModel.canCalculate ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
                 }
-                .disabled(!viewModel.canCalculate || viewModel.isLoading)
 
-                // Error Message
-                if let error = viewModel.errorMessage {
+                Section("Overnight") {
                     HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
-                        Text(error)
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                    .cornerRadius(8)
-                }
-            }
-            .padding()
-        }
-        .background(Color(.systemGroupedBackground))
-    }
-
-    // MARK: - Map Results
-
-    private func mapResultsView(polyline: MKPolyline, originCoord: CLLocationCoordinate2D, destCoord: CLLocationCoordinate2D) -> some View {
-        ZStack(alignment: .bottom) {
-            RouteMapView(
-                polyline: polyline,
-                originCoordinate: originCoord,
-                destinationCoordinate: destCoord
-            )
-            .edgesIgnoringSafeArea(.bottom)
-
-            // Bottom cost pane
-            bottomCostPane
-        }
-    }
-
-    private var bottomCostPane: some View {
-        VStack(spacing: 12) {
-            // Drag indicator
-            Capsule()
-                .fill(Color(.systemGray4))
-                .frame(width: 36, height: 5)
-                .padding(.top, 8)
-
-            ScrollView {
-                VStack(spacing: 16) {
-                    CostSummaryView(viewModel: viewModel)
-
-                    // Action Buttons
-                    HStack(spacing: 12) {
-                        Button(action: shareQuote) {
-                            HStack {
-                                Image(systemName: "square.and.arrow.up")
-                                Text("Share")
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
-                        }
-
-                        Button(action: { viewModel.saveCurrentRoute(context: modelContext) }) {
-                            HStack {
-                                Image(systemName: viewModel.routeSaved ? "checkmark" : "square.and.arrow.down")
-                                Text(viewModel.routeSaved ? "Saved" : "Save")
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(viewModel.routeSaved ? Color.green.opacity(0.15) : Color(.secondarySystemBackground))
-                            .foregroundColor(viewModel.routeSaved ? .green : .primary)
-                            .cornerRadius(10)
-                        }
-                        .disabled(viewModel.routeSaved)
-
-                        Button(action: viewModel.reset) {
-                            HStack {
-                                Image(systemName: "arrow.counterclockwise")
-                                Text("New Route")
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .foregroundColor(.blue)
-                            .cornerRadius(10)
-                        }
+                        Text("Nightly Rate")
+                        Spacer()
+                        Text("$")
+                        TextField("0.00", value: $viewModel.nightlyRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .frame(width: 60)
+                            .multilineTextAlignment(.trailing)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 16)
+
+                if let profile = viewModel.driverProfile {
+                    Section("Truck Profile") {
+                        HStack {
+                            Text("Truck")
+                            Spacer()
+                            Text(profile.truckDisplayName)
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Configuration")
+                            Spacer()
+                            Text(profile.configuration.rawValue)
+                                .foregroundColor(.secondary)
+                        }
+
+                        if let trailer = profile.trailerType {
+                            HStack {
+                                Text("Trailer")
+                                Spacer()
+                                Text(trailer.rawValue)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        HStack {
+                            Text("Base MPG")
+                            Spacer()
+                            Text(String(format: "%.1f", profile.baseMPG))
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Empty Weight")
+                            Spacer()
+                            Text("\(Int(profile.estimatedEmptyWeight).formatted()) lbs")
+                                .foregroundColor(.secondary)
+                        }
+
+                        Button("Reset Profile") {
+                            DriverProfile.resetOnboarding()
+                            dismiss()
+                            onResetProfile?()
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
             }
-            .frame(maxHeight: 440)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.15), radius: 10, y: -5)
-        )
     }
+}
 
-    // MARK: - Share
+// MARK: - History View
 
-    private func shareQuote() {
-        guard let route = viewModel.route else { return }
+struct ScenarioHistoryView: View {
+    @ObservedObject var viewModel: ScenarioCalculatorViewModel
+    @Environment(\.dismiss) private var dismiss
 
-        let breakdown = viewModel.costBreakdown
-        let quote = """
-        Truck Route Cost Quote
-        ----------------------
-        From: \(route.origin)
-        To: \(route.destination)
-        Distance: \(Int(route.distanceMiles)) miles
+    var body: some View {
+        NavigationView {
+            List {
+                if viewModel.scenarios.isEmpty {
+                    Text("No saved scenarios")
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(viewModel.scenarios) { scenario in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("$\(String(format: "%.0f", scenario.loadRate)) load")
+                                    .fontWeight(.semibold)
+                                Text("\(Int(scenario.totalMiles)) miles • \(scenario.segments.count) stops")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
 
-        Cost Breakdown:
-        - Fuel: $\(String(format: "%.2f", breakdown.fuelCost))
-        - Overnight (\(breakdown.numberOfNights) nights): $\(String(format: "%.2f", breakdown.overnightCost))
+                            Spacer()
 
-        TOTAL: $\(String(format: "%.2f", breakdown.totalCost))
-        Cost per mile: $\(String(format: "%.2f", breakdown.costPerMile))
-
-        Generated by Truck Route Calculator
-        """
-
-        let activityVC = UIActivityViewController(
-            activityItems: [quote],
-            applicationActivities: nil
-        )
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first,
-           let rootVC = window.rootViewController {
-            rootVC.present(activityVC, animated: true)
+                            VStack(alignment: .trailing) {
+                                Text(scenario.profit >= 0 ? "+$\(String(format: "%.0f", scenario.profit))" : "-$\(String(format: "%.0f", abs(scenario.profit)))")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(scenario.isProfitable ? .green : .red)
+                                Text("$\(String(format: "%.2f", scenario.profitPerMile))/mi")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            viewModel.scenarios.remove(at: index)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Scenarios")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !viewModel.scenarios.isEmpty {
+                        Button("Clear All") {
+                            viewModel.clearAllScenarios()
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
         }
     }
 }

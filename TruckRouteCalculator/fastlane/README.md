@@ -39,6 +39,62 @@ Run unit tests
 
 Build and test
 
+### ios beta
+
+```sh
+[bundle exec] fastlane ios beta
+```
+
+Push a new beta build to TestFlight
+
+### ios metadata
+
+```sh
+[bundle exec] fastlane ios metadata
+```
+
+Upload metadata to App Store Connect (no binary)
+
+### ios screenshots
+
+```sh
+[bundle exec] fastlane ios screenshots
+```
+
+Upload screenshots to App Store Connect
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Push a new release to the App Store
+
+### ios submit
+
+```sh
+[bundle exec] fastlane ios submit
+```
+
+Submit existing build for App Store review
+
+### ios add_tester
+
+```sh
+[bundle exec] fastlane ios add_tester
+```
+
+Add external tester to TestFlight
+
+### ios testers
+
+```sh
+[bundle exec] fastlane ios testers
+```
+
+List TestFlight testers
+
 ### ios lint
 
 ```sh

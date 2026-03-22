@@ -4,40 +4,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-iOS app (SwiftUI) for truck drivers to calculate the total cost of moving a load — fuel, tolls, and overnight stays. Integrates with Google Maps Routes API v2 and Places API for real-time route and toll data.
+iOS app (SwiftUI) for truck drivers to calculate the total cost and profitability of moving loads — fuel, tolls, and overnight stays. Uses Apple Maps for routing and EIA API for regional diesel pricing.
 
-**Requirements:** iOS 15.0+, Xcode 14.0+, Google Maps API key (Routes API + Places API enabled).
+**Requirements:** iOS 17.0+, Xcode 15.0+
+
+**Bundle Identifier:** `com.pivotallift.TruckRouteCalculator`
 
 ## Build & Run
 
-This is a Swift/SwiftUI project without an .xcodeproj checked in. To build:
-1. Create an Xcode iOS App project (SwiftUI, Swift)
-2. Copy all files from `TruckRouteCalculator/` maintaining folder structure
-3. Set the Google Maps API key in `TruckRouteCalculator/Utilities/Constants.swift`
-4. Build and run targeting iOS 15.0+
+```bash
+# Build and run in simulator
+xcodebuild -project TruckRouteCalculator.xcodeproj -scheme TruckRouteCalculator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 
-No external package dependencies — only Apple standard frameworks (Foundation, SwiftUI).
+# Install and launch
+xcrun simctl install booted <path-to-app>
+xcrun simctl launch booted com.pivotallift.TruckRouteCalculator
+```
 
-No test suite or CI/CD configuration exists in this repo.
+No external package dependencies — only Apple standard frameworks (Foundation, SwiftUI, SwiftData).
+
+**Fastlane:** CI/CD configured for App Store deployment (`fastlane/`).
 
 ## Architecture
 
 **Pattern:** MVVM (Model-View-ViewModel)
 
-**Data flow:** Views observe a single `RouteCalculatorViewModel` which coordinates two services:
-- `GoogleMapsService` — handles Routes API (POST to `computeRoutes`) and Places Autocomplete API (GET) calls
+**Data flow:** Views observe ViewModels which coordinate services:
+- `AppleMapService` — handles Apple Maps routing and Places autocomplete
+- `FuelPriceService` — fetches regional diesel prices from EIA API (24hr cache)
 - `CostCalculator` — pure calculation logic for fuel costs, overnight stays, and cost breakdowns
 
-All views are children of `ContentView` and share the same ViewModel instance:
+**ViewModels:**
+- `RouteCalculatorViewModel` — single-route calculations
+- `ScenarioCalculatorViewModel` — multi-segment load profitability analysis
+
+All views are children of `ContentView`:
 ```
 ContentView
-  ├── RouteInputView      (origin/destination with autocomplete)
-  ├── LoadConfigView      (truck + load weight)
-  ├── CostSummaryView     (results breakdown)
-  └── SettingsView         (modal sheet for configurable defaults)
+  ├── ProfileSetupView        (first-run truck selection/onboarding)
+  ├── ScenarioInputView       (multi-drop load entry)
+  ├── ScenarioResultsView     (profitability breakdown + comparison)
+  ├── RouteInputView          (origin/destination with autocomplete)
+  ├── CostSummaryView         (results breakdown)
+  └── SettingsView            (modal sheet for configurable defaults)
 ```
 
-**Models** (`Route`, `TollInfo`, `TollSegment`, `LoadConfig`, `CostBreakdown`) are pure data structs with no business logic.
+**Models** (pure data structs):
+- Core: `Route`, `TollInfo`, `TollSegment`, `LoadConfig`, `CostBreakdown`
+- Scenario: `LoadScenario`, `RouteSegment`, `SegmentType`, `DropLocation`
+- Profile: `DriverProfile`, `TruckDatabase` (30+ real truck specs)
 
 ## Key Domain Logic
 
@@ -71,6 +87,6 @@ All defaults are user-configurable at runtime via SettingsView.
 All source lives under `TruckRouteCalculator/`:
 - `Models/` — data structs
 - `Services/` — API integration and calculation engine
-- `ViewModels/` — single ViewModel orchestrating state
+- `ViewModels/` — ViewModels orchestrating state
 - `Views/` — SwiftUI views
 - `Utilities/` — constants and configuration

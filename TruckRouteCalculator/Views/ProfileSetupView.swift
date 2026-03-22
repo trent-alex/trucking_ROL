@@ -4,12 +4,30 @@ struct ProfileSetupView: View {
     @Binding var isPresented: Bool
     var onComplete: (DriverProfile) -> Void
 
-    @State private var truckType: TruckType = .sleeperCab
+    // Selection mode
+    @State private var useCustomTruck = false
+
+    // Predefined truck selection
+    @State private var selectedMake: TruckMake = .freightliner
+    @State private var selectedSpec: TruckSpec?
     @State private var truckYear: Int = 2020
+
+    // Custom truck entry
+    @State private var customMakeName: String = ""
+    @State private var customModelName: String = ""
+    @State private var customType: TruckType = .sleeperCab
+    @State private var customBaseMPG: Double = 7.0
+    @State private var customEmptyWeight: Double = 20000
+
+    // Configuration
     @State private var configuration: TruckConfiguration = .bobtailWithTrailer
     @State private var trailerType: TrailerType = .dryvan
 
     private let currentYear = Calendar.current.component(.year, from: Date())
+
+    var availableModels: [TruckSpec] {
+        TruckDatabase.models(for: selectedMake, year: truckYear)
+    }
 
     var body: some View {
         NavigationView {
@@ -17,9 +35,11 @@ struct ProfileSetupView: View {
                 // Welcome Section
                 Section {
                     VStack(alignment: .center, spacing: 12) {
-                        Image(systemName: "truck.box.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.blue)
+                        Image("ProfileIcon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
 
                         Text("Welcome to ROL")
                             .font(.title)
@@ -34,25 +54,19 @@ struct ProfileSetupView: View {
                     .padding(.vertical, 20)
                 }
 
-                // Truck Info Section
-                Section("Your Truck") {
-                    Picker("Truck Type", selection: $truckType) {
-                        ForEach(TruckType.allCases) { type in
-                            VStack(alignment: .leading) {
-                                Text(type.rawValue)
-                                Text(type.description)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .tag(type)
-                        }
+                // Truck Selection Mode
+                Section {
+                    Picker("Truck Source", selection: $useCustomTruck) {
+                        Text("Select from List").tag(false)
+                        Text("Enter Custom").tag(true)
                     }
+                    .pickerStyle(.segmented)
+                }
 
-                    Picker("Model Year", selection: $truckYear) {
-                        ForEach((1990...currentYear).reversed(), id: \.self) { year in
-                            Text(String(year)).tag(year)
-                        }
-                    }
+                if useCustomTruck {
+                    customTruckSection
+                } else {
+                    predefinedTruckSection
                 }
 
                 // Configuration Section
@@ -88,6 +102,14 @@ struct ProfileSetupView: View {
                     let profile = buildProfile()
 
                     HStack {
+                        Text("Truck")
+                        Spacer()
+                        Text(profile.truckDisplayName)
+                            .foregroundColor(.blue)
+                            .fontWeight(.semibold)
+                    }
+
+                    HStack {
                         Text("Base MPG")
                         Spacer()
                         Text(String(format: "%.1f", profile.baseMPG))
@@ -115,22 +137,146 @@ struct ProfileSetupView: View {
                             Spacer()
                         }
                     }
+                    .disabled(!isValidInput)
                     .foregroundColor(.white)
-                    .listRowBackground(Color.blue)
+                    .listRowBackground(isValidInput ? Color.blue : Color.gray)
                 }
             }
             .navigationTitle("Profile Setup")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // Select first available spec
+                if let firstSpec = availableModels.first {
+                    selectedSpec = firstSpec
+                }
+            }
+            .onChange(of: selectedMake) { _, _ in
+                // Reset selection when make changes
+                selectedSpec = availableModels.first
+            }
+            .onChange(of: truckYear) { _, _ in
+                // Reset selection when year changes
+                if let current = selectedSpec, !current.isValidForYear(truckYear) {
+                    selectedSpec = availableModels.first
+                }
+            }
         }
     }
 
+    // MARK: - Predefined Truck Section
+
+    private var predefinedTruckSection: some View {
+        Section("Your Truck") {
+            Picker("Model Year", selection: $truckYear) {
+                ForEach((1990...currentYear).reversed(), id: \.self) { year in
+                    Text(String(year)).tag(year)
+                }
+            }
+
+            Picker("Make", selection: $selectedMake) {
+                ForEach(TruckMake.allCases.filter { $0 != .custom }) { make in
+                    Text(make.rawValue).tag(make)
+                }
+            }
+
+            if !availableModels.isEmpty {
+                Picker("Model", selection: $selectedSpec) {
+                    ForEach(availableModels) { spec in
+                        VStack(alignment: .leading) {
+                            Text(spec.model)
+                            Text("\(spec.yearRange) • \(String(format: "%.1f", spec.baseMPG)) MPG")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .tag(spec as TruckSpec?)
+                    }
+                }
+            } else {
+                Text("No models available for \(truckYear)")
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    // MARK: - Custom Truck Section
+
+    private var customTruckSection: some View {
+        Section("Your Truck (Custom)") {
+            TextField("Make (e.g., Freightliner)", text: $customMakeName)
+                .autocorrectionDisabled()
+
+            TextField("Model (e.g., Cascadia)", text: $customModelName)
+                .autocorrectionDisabled()
+
+            Picker("Model Year", selection: $truckYear) {
+                ForEach((1990...currentYear).reversed(), id: \.self) { year in
+                    Text(String(year)).tag(year)
+                }
+            }
+
+            Picker("Truck Type", selection: $customType) {
+                ForEach(TruckType.allCases) { type in
+                    Text(type.rawValue).tag(type)
+                }
+            }
+
+            HStack {
+                Text("Base MPG")
+                Spacer()
+                TextField("MPG", value: $customBaseMPG, format: .number)
+                    .keyboardType(.decimalPad)
+                    .frame(width: 60)
+                    .multilineTextAlignment(.trailing)
+            }
+
+            HStack {
+                Text("Empty Weight (lbs)")
+                Spacer()
+                TextField("Weight", value: $customEmptyWeight, format: .number)
+                    .keyboardType(.numberPad)
+                    .frame(width: 80)
+                    .multilineTextAlignment(.trailing)
+            }
+        }
+    }
+
+    // MARK: - Validation
+
+    private var isValidInput: Bool {
+        if useCustomTruck {
+            return !customMakeName.isEmpty && !customModelName.isEmpty && customBaseMPG > 0 && customEmptyWeight > 0
+        } else {
+            return selectedSpec != nil
+        }
+    }
+
+    // MARK: - Build Profile
+
     private func buildProfile() -> DriverProfile {
-        DriverProfile(
-            truckType: truckType,
-            truckYear: truckYear,
-            configuration: configuration,
-            trailerType: configuration == .bobtailWithTrailer ? trailerType : nil
-        )
+        if useCustomTruck {
+            let custom = CustomTruck(
+                makeName: customMakeName.isEmpty ? "Custom" : customMakeName,
+                modelName: customModelName.isEmpty ? "Truck" : customModelName,
+                type: customType,
+                baseMPG: customBaseMPG,
+                emptyWeight: customEmptyWeight
+            )
+            return DriverProfile.fromCustom(
+                custom,
+                year: truckYear,
+                configuration: configuration,
+                trailerType: configuration == .bobtailWithTrailer ? trailerType : nil
+            )
+        } else if let spec = selectedSpec {
+            return DriverProfile.fromSpec(
+                spec,
+                year: truckYear,
+                configuration: configuration,
+                trailerType: configuration == .bobtailWithTrailer ? trailerType : nil
+            )
+        } else {
+            return DriverProfile.default
+        }
     }
 
     private func completeSetup() {

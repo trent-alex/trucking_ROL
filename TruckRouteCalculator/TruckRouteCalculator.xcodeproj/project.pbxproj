@@ -26,6 +26,16 @@
 		43C63BC62F2BCAA400643D30 /* RouteHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */; };
 		43C63BC72F2BCAA500643D30 /* DriverProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BC82F2BCAA500643D30 /* DriverProfile.swift */; };
 		43C63BC92F2BCAA600643D30 /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BCA2F2BCAA600643D30 /* ProfileSetupView.swift */; };
+		43C63BCB2F2BCAA700643D30 /* TruckDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BCC2F2BCAA700643D30 /* TruckDatabase.swift */; };
+		43C63BCD2F2BCAA800643D30 /* LoadScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BCE2F2BCAA800643D30 /* LoadScenario.swift */; };
+		43C63BCF2F2BCAA900643D30 /* ScenarioCalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BD02F2BCAA900643D30 /* ScenarioCalculatorViewModel.swift */; };
+		43C63BD12F2BCAAA00643D30 /* ScenarioInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BD22F2BCAAA00643D30 /* ScenarioInputView.swift */; };
+		43C63BD32F2BCAAB00643D30 /* ScenarioResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BD42F2BCAAB00643D30 /* ScenarioResultsView.swift */; };
+		43C63BD52F2BCAAC00643D30 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BD62F2BCAAC00643D30 /* LocationManager.swift */; };
+		43C63BD72F2BCAAD00643D30 /* ScenarioRouteMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BD82F2BCAAD00643D30 /* ScenarioRouteMapView.swift */; };
+		43C63BD92F2BCAAE00643D30 /* StateWeightLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BDA2F2BCAAE00643D30 /* StateWeightLimits.swift */; };
+		43C63BDB2F2BCAAF00643D30 /* StateWeightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BDC2F2BCAAF00643D30 /* StateWeightService.swift */; };
+		43C63BDD2F2BCAB000643D30 /* state-weight-limits.json in Resources */ = {isa = PBXBuildFile; fileRef = 43C63BDE2F2BCAB000643D30 /* state-weight-limits.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +78,16 @@
 		43C63BC42F2BCAA400643D30 /* RouteHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteHistoryView.swift; sourceTree = "<group>"; };
 		43C63BC82F2BCAA500643D30 /* DriverProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverProfile.swift; sourceTree = "<group>"; };
 		43C63BCA2F2BCAA600643D30 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
+		43C63BCC2F2BCAA700643D30 /* TruckDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruckDatabase.swift; sourceTree = "<group>"; };
+		43C63BCE2F2BCAA800643D30 /* LoadScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadScenario.swift; sourceTree = "<group>"; };
+		43C63BD02F2BCAA900643D30 /* ScenarioCalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioCalculatorViewModel.swift; sourceTree = "<group>"; };
+		43C63BD22F2BCAAA00643D30 /* ScenarioInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioInputView.swift; sourceTree = "<group>"; };
+		43C63BD42F2BCAAB00643D30 /* ScenarioResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioResultsView.swift; sourceTree = "<group>"; };
+		43C63BD62F2BCAAC00643D30 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		43C63BD82F2BCAAD00643D30 /* ScenarioRouteMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioRouteMapView.swift; sourceTree = "<group>"; };
+		43C63BDA2F2BCAAE00643D30 /* StateWeightLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateWeightLimits.swift; sourceTree = "<group>"; };
+		43C63BDC2F2BCAAF00643D30 /* StateWeightService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateWeightService.swift; sourceTree = "<group>"; };
+		43C63BDE2F2BCAB000643D30 /* state-weight-limits.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "state-weight-limits.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -119,6 +139,7 @@
 				43C63BA32F2BCAA100643D30 /* Models */,
 				43C63BA62F2BCAA100643D30 /* Services */,
 				43C63BA72F2BCAA100643D30 /* TruckRouteCalculatorApp.swift */,
+				43C63BDE2F2BCAB000643D30 /* state-weight-limits.json */,
 				43C63BA92F2BCAA100643D30 /* Utilities */,
 				43C63BAB2F2BCAA100643D30 /* ViewModels */,
 				43C63BB12F2BCAA100643D30 /* Views */,
@@ -144,9 +165,12 @@
 			children = (
 				43C63BA02F2BCAA100643D30 /* CostBreakdown.swift */,
 				43C63BC82F2BCAA500643D30 /* DriverProfile.swift */,
+				43C63BCC2F2BCAA700643D30 /* TruckDatabase.swift */,
+				43C63BCE2F2BCAA800643D30 /* LoadScenario.swift */,
 				43C63BA12F2BCAA100643D30 /* LoadConfig.swift */,
 				43C63BA22F2BCAA100643D30 /* Route.swift */,
 				43C63BC32F2BCAA400643D30 /* SavedRoute.swift */,
+				43C63BDA2F2BCAAE00643D30 /* StateWeightLimits.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -157,6 +181,8 @@
 				43C63BA42F2BCAA100643D30 /* CostCalculator.swift */,
 				43C63BA52F2BCAA100643D30 /* AppleMapService.swift */,
 				43C63BA62F2BCAA200643D30 /* FuelPriceService.swift */,
+				43C63BD62F2BCAAC00643D30 /* LocationManager.swift */,
+				43C63BDC2F2BCAAF00643D30 /* StateWeightService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -173,6 +199,7 @@
 			isa = PBXGroup;
 			children = (
 				43C63BAA2F2BCAA100643D30 /* RouteCalculatorViewModel.swift */,
+				43C63BD02F2BCAA900643D30 /* ScenarioCalculatorViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -188,6 +215,9 @@
 				43C63BC22F2BCAA300643D30 /* RouteMapView.swift */,
 				43C63BB02F2BCAA100643D30 /* SettingsView.swift */,
 				43C63BCA2F2BCAA600643D30 /* ProfileSetupView.swift */,
+				43C63BD22F2BCAAA00643D30 /* ScenarioInputView.swift */,
+				43C63BD42F2BCAAB00643D30 /* ScenarioResultsView.swift */,
+				43C63BD82F2BCAAD00643D30 /* ScenarioRouteMapView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -312,6 +342,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43C63BDD2F2BCAB000643D30 /* state-weight-limits.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -355,6 +386,15 @@
 				43C63BC62F2BCAA400643D30 /* RouteHistoryView.swift in Sources */,
 				43C63BC72F2BCAA500643D30 /* DriverProfile.swift in Sources */,
 				43C63BC92F2BCAA600643D30 /* ProfileSetupView.swift in Sources */,
+				43C63BCB2F2BCAA700643D30 /* TruckDatabase.swift in Sources */,
+				43C63BCD2F2BCAA800643D30 /* LoadScenario.swift in Sources */,
+				43C63BCF2F2BCAA900643D30 /* ScenarioCalculatorViewModel.swift in Sources */,
+				43C63BD12F2BCAAA00643D30 /* ScenarioInputView.swift in Sources */,
+				43C63BD32F2BCAAB00643D30 /* ScenarioResultsView.swift in Sources */,
+				43C63BD52F2BCAAC00643D30 /* LocationManager.swift in Sources */,
+				43C63BD72F2BCAAD00643D30 /* ScenarioRouteMapView.swift in Sources */,
+				43C63BD92F2BCAAE00643D30 /* StateWeightLimits.swift in Sources */,
+				43C63BDB2F2BCAAF00643D30 /* StateWeightService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,6 +563,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to set your current position for route calculations.";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -559,6 +600,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to set your current position for route calculations.";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

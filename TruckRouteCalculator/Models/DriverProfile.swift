@@ -1,44 +1,81 @@
 import Foundation
 
 struct DriverProfile: Codable {
-    // Truck Info
-    var truckType: TruckType
+    // Truck Selection Mode
+    var useCustomTruck: Bool = false
+
+    // Predefined Truck (from database)
+    var selectedTruckSpecId: String?
     var truckYear: Int
+
+    // Custom Truck (user-entered)
+    var customTruck: CustomTruck?
+
+    // Legacy fields for backwards compatibility
+    var truckType: TruckType
 
     // Configuration
     var configuration: TruckConfiguration
     var trailerType: TrailerType?
 
-    // Computed base MPG based on configuration
+    // Computed base MPG based on selection
     var baseMPG: Double {
-        switch configuration {
-        case .bobtailOnly:
-            return 12.0  // No trailer drag
-        case .bobtailWithTrailer:
-            guard let trailer = trailerType else { return 7.0 }
-            switch trailer {
-            case .dryvan:
-                return 7.0  // Standard enclosed trailer
-            case .reefer:
-                return 6.0  // Reefer unit consumes additional fuel
-            case .flatbed:
-                return 7.5  // Less aerodynamic drag than enclosed
-            case .tanker:
-                return 6.5  // Heavy and less aerodynamic
-            }
+        let truckBaseMPG: Double
+
+        if useCustomTruck, let custom = customTruck {
+            truckBaseMPG = custom.baseMPG
+        } else if let specId = selectedTruckSpecId, let spec = TruckDatabase.spec(id: specId) {
+            truckBaseMPG = spec.baseMPG
+        } else {
+            // Fallback to legacy calculation
+            truckBaseMPG = 7.0
+        }
+
+        // Adjust for trailer if bobtail only (better MPG without trailer)
+        if configuration == .bobtailOnly {
+            return truckBaseMPG + 2.0  // ~2 MPG better without trailer
+        }
+
+        // Adjust for trailer type (research-based values)
+        // Source: Hale Trailer, Cargostore, TruckersReport forums
+        guard let trailer = trailerType else { return truckBaseMPG }
+        switch trailer {
+        case .dryvan:
+            // Baseline - most common trailer type
+            return truckBaseMPG
+        case .reefer:
+            // Refrigeration unit burns 0.5-1.0 gal/hr extra
+            // Over 500mi trip (~10hrs) = 5-10 extra gallons = ~1.0 MPG penalty
+            return truckBaseMPG - 1.0
+        case .flatbed:
+            // Less aerodynamic drag than enclosed box trailer
+            // Drivers report ~0.3-0.5 MPG better than dry van
+            return truckBaseMPG + 0.4
+        case .tanker:
+            // Cylindrical shape = 5-10% better aerodynamics than box
+            // But heavier construction offsets some gains
+            return truckBaseMPG + 0.2
         }
     }
 
-    // Estimated empty weight based on configuration
+    // Estimated empty weight based on selection
     var estimatedEmptyWeight: Double {
         let truckWeight: Double
-        switch truckType {
-        case .dayCab:
-            truckWeight = 16000
-        case .sleeperCab:
-            truckWeight = 20000
-        case .caboover:
-            truckWeight = 15000
+
+        if useCustomTruck, let custom = customTruck {
+            truckWeight = custom.emptyWeight
+        } else if let specId = selectedTruckSpecId, let spec = TruckDatabase.spec(id: specId) {
+            truckWeight = spec.emptyWeight
+        } else {
+            // Fallback to legacy calculation
+            switch truckType {
+            case .dayCab:
+                truckWeight = 16000
+            case .sleeperCab:
+                truckWeight = 20000
+            case .caboover:
+                truckWeight = 15000
+            }
         }
 
         guard configuration == .bobtailWithTrailer, let trailer = trailerType else {
@@ -50,7 +87,7 @@ struct DriverProfile: Codable {
         case .dryvan:
             trailerWeight = 14000
         case .reefer:
-            trailerWeight = 16000  // Heavier due to refrigeration unit
+            trailerWeight = 16000
         case .flatbed:
             trailerWeight = 12000
         case .tanker:
@@ -60,12 +97,51 @@ struct DriverProfile: Codable {
         return truckWeight + trailerWeight
     }
 
+    // Display name for the truck
+    var truckDisplayName: String {
+        if useCustomTruck, let custom = customTruck {
+            return "\(custom.makeName) \(custom.modelName)"
+        } else if let specId = selectedTruckSpecId, let spec = TruckDatabase.spec(id: specId) {
+            return spec.displayName
+        }
+        return truckType.rawValue
+    }
+
     static var `default`: DriverProfile {
         DriverProfile(
-            truckType: .sleeperCab,
+            useCustomTruck: false,
+            selectedTruckSpecId: nil,
             truckYear: 2020,
+            customTruck: nil,
+            truckType: .sleeperCab,
             configuration: .bobtailWithTrailer,
             trailerType: .dryvan
+        )
+    }
+
+    // Initialize from a TruckSpec
+    static func fromSpec(_ spec: TruckSpec, year: Int, configuration: TruckConfiguration, trailerType: TrailerType?) -> DriverProfile {
+        DriverProfile(
+            useCustomTruck: false,
+            selectedTruckSpecId: spec.id,
+            truckYear: year,
+            customTruck: nil,
+            truckType: spec.type,
+            configuration: configuration,
+            trailerType: trailerType
+        )
+    }
+
+    // Initialize from custom truck
+    static func fromCustom(_ custom: CustomTruck, year: Int, configuration: TruckConfiguration, trailerType: TrailerType?) -> DriverProfile {
+        DriverProfile(
+            useCustomTruck: true,
+            selectedTruckSpecId: nil,
+            truckYear: year,
+            customTruck: custom,
+            truckType: custom.type,
+            configuration: configuration,
+            trailerType: trailerType
         )
     }
 }
