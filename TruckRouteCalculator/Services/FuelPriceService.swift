@@ -202,4 +202,74 @@ class FuelPriceService {
         UserDefaults.standard.removeObject(forKey: cacheKey)
         UserDefaults.standard.removeObject(forKey: cacheTimestampKey)
     }
+
+    // MARK: - Cache Metadata (for Trust/Transparency UI)
+
+    /// Returns the cache timestamp as a Date, or nil if no cache exists
+    func getCacheTimestamp() -> Date? {
+        let timestamp = UserDefaults.standard.double(forKey: cacheTimestampKey)
+        guard timestamp > 0 else { return nil }
+        return Date(timeIntervalSince1970: timestamp)
+    }
+
+    /// Returns a formatted string showing when data was last updated
+    func getFormattedCacheTime() -> String {
+        guard let cacheDate = getCacheTimestamp() else {
+            return "Default pricing"
+        }
+
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: cacheDate, relativeTo: Date())
+    }
+
+    /// Returns hours since last cache update
+    func getHoursSinceUpdate() -> Double? {
+        guard let cacheDate = getCacheTimestamp() else { return nil }
+        return Date().timeIntervalSince(cacheDate) / 3600
+    }
+
+    /// Check if we have valid cached EIA data
+    func hasValidCache() -> Bool {
+        return getCachedPrices() != nil && !isCacheExpired()
+    }
+
+    /// Get cache status for UI display
+    func getCacheStatus() -> CacheStatus {
+        guard let cacheDate = getCacheTimestamp() else {
+            return .noData
+        }
+
+        if isCacheExpired() {
+            return .expired(lastUpdate: cacheDate)
+        }
+
+        return .valid(lastUpdate: cacheDate)
+    }
+
+    enum CacheStatus {
+        case valid(lastUpdate: Date)
+        case expired(lastUpdate: Date)
+        case noData
+
+        var isVerified: Bool {
+            if case .valid = self { return true }
+            return false
+        }
+
+        var displayText: String {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short
+
+            switch self {
+            case .valid(let date):
+                return "EIA Regional Avg (Updated \(formatter.string(from: date)))"
+            case .expired(let date):
+                return "EIA Data (Stale - \(formatter.string(from: date)))"
+            case .noData:
+                return "Default pricing (EIA unavailable)"
+            }
+        }
+    }
 }

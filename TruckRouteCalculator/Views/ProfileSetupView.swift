@@ -34,25 +34,39 @@ struct ProfileSetupView: View {
             Form {
                 // Welcome Section
                 Section {
-                    VStack(alignment: .center, spacing: 12) {
-                        Image("ProfileIcon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    VStack(alignment: .center, spacing: 16) {
+                        // Icon with accent background
+                        ZStack {
+                            Circle()
+                                .fill(AppTheme.accent)
+                                .frame(width: 100, height: 100)
+                            Image("ProfileIcon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 60, height: 60)
+                        }
 
                         Text("Welcome to ROL")
                             .font(.title)
                             .fontWeight(.bold)
+                            .foregroundColor(AppTheme.textPrimary)
 
                         Text("Set up your truck profile for accurate cost calculations")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
+
+                        // Feature tags
+                        HStack(spacing: 8) {
+                            AccentTag(text: "Fuel Costs")
+                            DarkTag(text: "Route Planning")
+                            AccentTag(text: "Profits")
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
                 }
+                .listRowBackground(AppTheme.backgroundPrimary)
 
                 // Truck Selection Mode
                 Section {
@@ -81,15 +95,9 @@ struct ProfileSetupView: View {
                     if configuration == .bobtailWithTrailer {
                         Picker("Trailer Type", selection: $trailerType) {
                             ForEach(TrailerType.allCases) { type in
-                                Label {
-                                    VStack(alignment: .leading) {
-                                        Text(type.rawValue)
-                                        Text(type.description)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                } icon: {
+                                HStack {
                                     Image(systemName: type.icon)
+                                    Text(type.rawValue)
                                 }
                                 .tag(type)
                             }
@@ -102,26 +110,41 @@ struct ProfileSetupView: View {
                     let profile = buildProfile()
 
                     HStack {
+                        Image(systemName: "truck.box.fill")
+                            .foregroundColor(AppTheme.textOnDark)
+                            .padding(6)
+                            .background(AppTheme.darkCard)
+                            .cornerRadius(6)
                         Text("Truck")
                         Spacer()
                         Text(profile.truckDisplayName)
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
                     }
 
                     HStack {
+                        Image(systemName: "fuelpump.fill")
+                            .foregroundColor(AppTheme.textOnAccent)
+                            .padding(6)
+                            .background(AppTheme.accent)
+                            .cornerRadius(6)
                         Text("Base MPG")
                         Spacer()
                         Text(String(format: "%.1f", profile.baseMPG))
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
                     }
 
                     HStack {
+                        Image(systemName: "scalemass.fill")
+                            .foregroundColor(AppTheme.textOnDark)
+                            .padding(6)
+                            .background(AppTheme.darkCard)
+                            .cornerRadius(6)
                         Text("Empty Weight")
                         Spacer()
                         Text("\(Int(profile.estimatedEmptyWeight).formatted()) lbs")
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
                     }
                 }
@@ -138,8 +161,8 @@ struct ProfileSetupView: View {
                         }
                     }
                     .disabled(!isValidInput)
-                    .foregroundColor(.white)
-                    .listRowBackground(isValidInput ? Color.blue : Color.gray)
+                    .foregroundColor(isValidInput ? AppTheme.textOnAccent : AppTheme.textSecondary)
+                    .listRowBackground(isValidInput ? AppTheme.accent : AppTheme.border)
                 }
             }
             .navigationTitle("Profile Setup")

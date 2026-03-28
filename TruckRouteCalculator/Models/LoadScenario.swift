@@ -199,6 +199,51 @@ struct DropLocation: Identifiable, Codable {
     }
 }
 
+// MARK: - Calculation Explanation (for Transparency UI)
+
+struct CalculationExplanation {
+    let baseMPG: Double
+    let fuelPrice: Double
+    let nightlyRate: Double
+    let milesPerDay: Double
+    let baseWeight: Double
+    let mpgPenaltyPerPound: Double
+
+    var mpgFormula: String {
+        """
+        Effective MPG = Base MPG - (Total Weight - \(Int(baseWeight).formatted()) lbs) × \(String(format: "%.5f", mpgPenaltyPerPound))
+
+        Your truck's base MPG: \(String(format: "%.1f", baseMPG))
+        Minimum enforced: 4.0 MPG
+        """
+    }
+
+    var fuelCostFormula: String {
+        """
+        Fuel Cost = (Distance ÷ Effective MPG) × Fuel Price
+
+        Current fuel price: $\(String(format: "%.2f", fuelPrice))/gal
+        """
+    }
+
+    var overnightFormula: String {
+        """
+        Overnight Stays = ⌈Distance ÷ \(Int(milesPerDay)) miles/day⌉ - 1
+
+        Based on DOT 11-hour driving limit (~\(Int(milesPerDay)) mi/day at 50 mph)
+        Nightly rate: $\(String(format: "%.0f", nightlyRate))
+        """
+    }
+
+    var profitFormula: String {
+        """
+        Net Profit = Load Rate - (Fuel Cost + Overnight Cost + Lumper Charges)
+
+        Profit per Mile = Net Profit ÷ Total Miles
+        """
+    }
+}
+
 // MARK: - CLLocationCoordinate2D Codable
 
 extension CLLocationCoordinate2D: Codable {

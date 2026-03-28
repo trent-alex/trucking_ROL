@@ -18,8 +18,17 @@ struct DriverProfile: Codable {
     var configuration: TruckConfiguration
     var trailerType: TrailerType?
 
-    // Computed base MPG based on selection
+    // Custom MPG override
+    var useCustomMPG: Bool = false
+    var customMPGValue: Double?
+
+    // Computed base MPG based on selection (or custom override)
     var baseMPG: Double {
+        // If custom MPG is set, use it
+        if useCustomMPG, let customMPG = customMPGValue {
+            return max(4.0, customMPG) // Enforce minimum 4.0 MPG
+        }
+
         let truckBaseMPG: Double
 
         if useCustomTruck, let custom = customTruck {

@@ -7,6 +7,11 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
     private var onResultsUpdate: (([LocationSuggestion]) -> Void)?
     private let geocoder = CLGeocoder()
 
+    // MARK: - Caching for Performance
+    private var locationCache: [String: MKMapItem] = [:]
+    private var routeCache: [String: Route] = [:]
+    private let cacheQueue = DispatchQueue(label: "com.trucking.mapservice.cache")
+
     override init() {
         self.completer = MKLocalSearchCompleter()
         super.init()
@@ -54,8 +59,18 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
     // MARK: - Route Calculation
 
     func fetchRoute(from origin: String, to destination: String) async throws -> Route {
-        let originItem = try await resolveLocation(origin)
-        let destinationItem = try await resolveLocation(destination)
+        // Check route cache first
+        let routeCacheKey = "\(origin.lowercased())|\(destination.lowercased())"
+        if let cached = cacheQueue.sync(execute: { routeCache[routeCacheKey] }) {
+            return cached
+        }
+
+        // Resolve both locations in parallel
+        async let originItemTask = resolveLocation(origin)
+        async let destinationItemTask = resolveLocation(destination)
+
+        let originItem = try await originItemTask
+        let destinationItem = try await destinationItemTask
 
         let request = MKDirections.Request()
         request.source = originItem
@@ -89,12 +104,13 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
         }
 
         // For longer routes, sample intermediate points for state crossings
-        if distanceMiles > 100 {
-            let intermediateStates = await extractIntermediateStates(from: mkRoute.polyline, existingStates: states)
+        // Only do this for routes > 200 miles to reduce API calls
+        if distanceMiles > 200 {
+            let intermediateStates = await extractIntermediateStatesParallel(from: mkRoute.polyline, existingStates: states)
             states = mergeStatesInOrder(origin: states.first, destination: states.last, intermediate: intermediateStates)
         }
 
-        return Route(
+        let route = Route(
             origin: origin,
             destination: destination,
             distanceMiles: distanceMiles,
@@ -103,26 +119,60 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
             originCoordinate: originItem.placemark.coordinate,
             destinationCoordinate: destinationItem.placemark.coordinate
         )
+
+        // Cache the route
+        cacheQueue.sync { routeCache[routeCacheKey] = route }
+
+        return route
     }
 
     // MARK: - State Extraction
 
     private func extractIntermediateStates(from polyline: MKPolyline, existingStates: [String]) async -> [String] {
+        // Use parallel version for better performance
+        return await extractIntermediateStatesParallel(from: polyline, existingStates: existingStates)
+    }
+
+    /// Parallel version of state extraction - all geocoding happens concurrently
+    private func extractIntermediateStatesParallel(from polyline: MKPolyline, existingStates: [String]) async -> [String] {
         let pointCount = polyline.pointCount
         guard pointCount > 2 else { return [] }
 
-        // Sample every ~100 miles (roughly every 150-200 points depending on route detail)
-        let sampleInterval = max(pointCount / 10, 1)
+        // Sample 5 points along the route (reduced from 10 for speed)
+        let sampleInterval = max(pointCount / 5, 1)
         let points = polyline.points()
 
-        var foundStates: [String] = []
-
+        // Collect sample coordinates
+        var sampleCoordinates: [(index: Int, coordinate: CLLocationCoordinate2D)] = []
         for i in stride(from: sampleInterval, to: pointCount - sampleInterval, by: sampleInterval) {
-            let coord = points[i].coordinate
-            if let state = await reverseGeocodeState(coordinate: coord) {
-                if !foundStates.contains(state) && !existingStates.contains(state) {
-                    foundStates.append(state)
+            sampleCoordinates.append((index: i, coordinate: points[i].coordinate))
+        }
+
+        // Fetch all states in parallel using TaskGroup
+        var indexedStates: [(index: Int, state: String)] = []
+
+        await withTaskGroup(of: (Int, String?).self) { group in
+            for sample in sampleCoordinates {
+                group.addTask {
+                    let state = await self.reverseGeocodeState(coordinate: sample.coordinate)
+                    return (sample.index, state)
                 }
+            }
+
+            for await (index, state) in group {
+                if let state = state {
+                    indexedStates.append((index: index, state: state))
+                }
+            }
+        }
+
+        // Sort by index to maintain route order, then deduplicate
+        indexedStates.sort { $0.index < $1.index }
+
+        var foundStates: [String] = []
+        for (_, state) in indexedStates {
+            if !foundStates.contains(state) && !existingStates.contains(state) {
+                foundStates.append(state)
             }
         }
 
@@ -193,6 +243,12 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
     // MARK: - Private
 
     private func resolveLocation(_ address: String) async throws -> MKMapItem {
+        // Check cache first
+        let cacheKey = address.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if let cached = cacheQueue.sync(execute: { locationCache[cacheKey] }) {
+            return cached
+        }
+
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = address
         request.region = MKCoordinateRegion(
@@ -206,7 +262,26 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
         guard let mapItem = response.mapItems.first else {
             throw AppleMapError.locationNotFound(address)
         }
+
+        // Cache the result
+        cacheQueue.sync { locationCache[cacheKey] = mapItem }
+
         return mapItem
+    }
+
+    /// Pre-resolve a location when user selects it (background caching)
+    func preResolveLocation(_ address: String) {
+        Task {
+            _ = try? await resolveLocation(address)
+        }
+    }
+
+    /// Clear caches (call when starting fresh calculation)
+    func clearCaches() {
+        cacheQueue.sync {
+            locationCache.removeAll()
+            routeCache.removeAll()
+        }
     }
 }
 

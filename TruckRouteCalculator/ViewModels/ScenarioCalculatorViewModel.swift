@@ -11,6 +11,7 @@ class ScenarioCalculatorViewModel: ObservableObject {
     @Published var trailerPickupLocation: String = ""
     @Published var loadPickupLocation: String = ""
     @Published var loadPickupSameAsTrailer: Bool = false
+    @Published var loadPickupSameAsCurrentLocation: Bool = false
     @Published var dropLocations: [DropLocation] = [DropLocation()]
     @Published var trailerDropLocation: String = ""
     @Published var trailerDropSameAsLastDelivery: Bool = false
@@ -30,8 +31,11 @@ class ScenarioCalculatorViewModel: ObservableObject {
     @Published var isCalculating: Bool = false
     @Published var errorMessage: String?
     @Published var currentScenario: LoadScenario?
-    @Published var scenarios: [LoadScenario] = []
+    @Published var scenarios: [LoadScenario] = [] {
+        didSet { saveScenarios() }
+    }
     @Published var showingResults: Bool = false
+    @Published var showSaveConfirmation: Bool = false
 
     // MARK: - Profile
     @Published var driverProfile: DriverProfile?
@@ -42,9 +46,67 @@ class ScenarioCalculatorViewModel: ObservableObject {
     private var costCalculator: CostCalculator
     let locationManager: LocationManager
 
-    // MARK: - Settings
-    @Published var fuelPrice: Double = Constants.defaultFuelPrice
-    @Published var nightlyRate: Double = Constants.defaultNightlyRate
+    // MARK: - Settings (persisted)
+    @Published var fuelPrice: Double = Constants.defaultFuelPrice {
+        didSet { UserDefaults.standard.set(fuelPrice, forKey: Self.fuelPriceKey) }
+    }
+    @Published var nightlyRate: Double = Constants.defaultNightlyRate {
+        didSet { UserDefaults.standard.set(nightlyRate, forKey: Self.nightlyRateKey) }
+    }
+    @Published var defaultLumperCharge: Double = 0 {
+        didSet { UserDefaults.standard.set(defaultLumperCharge, forKey: Self.lumperChargeKey) }
+    }
+
+    private static let fuelPriceKey = "savedFuelPrice"
+    private static let nightlyRateKey = "savedNightlyRate"
+    private static let lumperChargeKey = "savedLumperCharge"
+
+    // MARK: - Fuel Price Metadata (for Trust UI)
+
+    var fuelPriceCacheStatus: FuelPriceService.CacheStatus {
+        fuelPriceService.getCacheStatus()
+    }
+
+    var fuelPriceIsVerified: Bool {
+        fuelPriceService.hasValidCache()
+    }
+
+    var fuelPriceSourceText: String {
+        fuelPriceService.getCacheStatus().displayText
+    }
+
+    // MARK: - Confidence Intervals
+
+    /// Calculate profit with fuel price increased by percentage
+    func profitWithFuelIncrease(_ percentage: Double, for scenario: LoadScenario) -> Double {
+        let increasedFuelPrice = fuelPrice * (1 + percentage / 100)
+        let fuelCostIncrease = scenario.totalFuelCost * (percentage / 100)
+        return scenario.profit - fuelCostIncrease
+    }
+
+    /// Calculate worst case profit (5% fuel increase)
+    func worstCaseProfit(for scenario: LoadScenario) -> Double {
+        return profitWithFuelIncrease(5, for: scenario)
+    }
+
+    /// Calculate best case profit (5% fuel decrease)
+    func bestCaseProfit(for scenario: LoadScenario) -> Double {
+        return profitWithFuelIncrease(-5, for: scenario)
+    }
+
+    // MARK: - Calculation Logic for Transparency
+
+    func getCalculationExplanation() -> CalculationExplanation {
+        let profile = driverProfile ?? DriverProfile.default
+        return CalculationExplanation(
+            baseMPG: profile.baseMPG,
+            fuelPrice: fuelPrice,
+            nightlyRate: nightlyRate,
+            milesPerDay: Constants.defaultMilesPerDay,
+            baseWeight: Constants.defaultBaseWeight,
+            mpgPenaltyPerPound: Constants.defaultMPGPenaltyPerPound
+        )
+    }
 
     private var searchTask: Task<Void, Never>?
 
@@ -86,7 +148,7 @@ class ScenarioCalculatorViewModel: ObservableObject {
             guard !trailerPickupLocation.isEmpty || loadPickupSameAsTrailer else { return false }
         }
 
-        guard !loadPickupLocation.isEmpty || loadPickupSameAsTrailer else { return false }
+        guard !loadPickupLocation.isEmpty || loadPickupSameAsTrailer || loadPickupSameAsCurrentLocation else { return false }
         guard dropLocations.allSatisfy({ !$0.address.isEmpty }) else { return false }
 
         // Trailer drop is needed if driver will have a trailer
@@ -106,6 +168,52 @@ class ScenarioCalculatorViewModel: ObservableObject {
         // Load driver profile
         if let profile = DriverProfile.load() {
             self.driverProfile = profile
+        }
+
+        // Load saved scenarios
+        loadScenarios()
+
+        // Load saved settings
+        loadSettings()
+    }
+
+    private func loadSettings() {
+        let defaults = UserDefaults.standard
+
+        if defaults.object(forKey: Self.fuelPriceKey) != nil {
+            fuelPrice = defaults.double(forKey: Self.fuelPriceKey)
+        }
+
+        if defaults.object(forKey: Self.nightlyRateKey) != nil {
+            nightlyRate = defaults.double(forKey: Self.nightlyRateKey)
+        }
+
+        if defaults.object(forKey: Self.lumperChargeKey) != nil {
+            defaultLumperCharge = defaults.double(forKey: Self.lumperChargeKey)
+            // Pre-fill pickup lumper with last used value
+            pickupLumperCharge = defaultLumperCharge
+        }
+    }
+
+    // MARK: - Persistence
+
+    private static let scenariosKey = "savedLoadScenarios"
+
+    private func saveScenarios() {
+        do {
+            let data = try JSONEncoder().encode(scenarios)
+            UserDefaults.standard.set(data, forKey: Self.scenariosKey)
+        } catch {
+            print("Failed to save scenarios: \(error)")
+        }
+    }
+
+    private func loadScenarios() {
+        guard let data = UserDefaults.standard.data(forKey: Self.scenariosKey) else { return }
+        do {
+            scenarios = try JSONDecoder().decode([LoadScenario].self, from: data)
+        } catch {
+            print("Failed to load scenarios: \(error)")
         }
     }
 
@@ -203,16 +311,20 @@ class ScenarioCalculatorViewModel: ObservableObject {
     func selectCurrentLocation(_ suggestion: LocationSuggestion) {
         currentLocation = suggestion.displayText
         currentLocationSuggestions = []
+        // Pre-resolve for faster calculation
+        mapService.preResolveLocation(suggestion.displayText)
     }
 
     func selectTrailerPickup(_ suggestion: LocationSuggestion) {
         trailerPickupLocation = suggestion.displayText
         trailerPickupSuggestions = []
+        mapService.preResolveLocation(suggestion.displayText)
     }
 
     func selectLoadPickup(_ suggestion: LocationSuggestion) {
         loadPickupLocation = suggestion.displayText
         loadPickupSuggestions = []
+        mapService.preResolveLocation(suggestion.displayText)
     }
 
     func selectDropLocation(_ suggestion: LocationSuggestion, at index: Int) {
@@ -221,11 +333,13 @@ class ScenarioCalculatorViewModel: ObservableObject {
         if index < dropLocationSuggestions.count {
             dropLocationSuggestions[index] = []
         }
+        mapService.preResolveLocation(suggestion.displayText)
     }
 
     func selectTrailerDrop(_ suggestion: LocationSuggestion) {
         trailerDropLocation = suggestion.displayText
         trailerDropSuggestions = []
+        mapService.preResolveLocation(suggestion.displayText)
     }
 
     // MARK: - Calculate
@@ -258,6 +372,8 @@ class ScenarioCalculatorViewModel: ObservableObject {
                 nightlyRate: nightlyRate
             )
 
+            // Pre-resolve happens on location selection, no delay needed here
+
             // Build route segments based on configuration
             var previousLocation = currentLocation
 
@@ -275,7 +391,9 @@ class ScenarioCalculatorViewModel: ObservableObject {
 
             // Segment 2: Deadhead to pickup (if different from current location or trailer)
             let actualPickupLocation: String
-            if needsTrailerPickup && loadPickupSameAsTrailer {
+            if loadPickupSameAsCurrentLocation {
+                actualPickupLocation = currentLocation
+            } else if needsTrailerPickup && loadPickupSameAsTrailer {
                 actualPickupLocation = trailerPickupLocation
             } else {
                 actualPickupLocation = loadPickupLocation
@@ -328,6 +446,12 @@ class ScenarioCalculatorViewModel: ObservableObject {
             currentScenario = scenario
             showingResults = true
 
+            // Save last used lumper charge for prefill
+            let maxLumper = max(pickupLumperCharge, dropLocations.map { $0.lumperCharge }.max() ?? 0)
+            if maxLumper > 0 {
+                defaultLumperCharge = maxLumper
+            }
+
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -371,9 +495,23 @@ class ScenarioCalculatorViewModel: ObservableObject {
 
     // MARK: - Scenario Management
 
+    var isCurrentScenarioSaved: Bool {
+        guard let current = currentScenario else { return false }
+        return scenarios.contains { $0.id == current.id }
+    }
+
     func saveCurrentScenario() {
         guard let scenario = currentScenario else { return }
+        // Check if already saved
+        guard !scenarios.contains(where: { $0.id == scenario.id }) else { return }
         scenarios.append(scenario)
+        showSaveConfirmation = true
+
+        // Hide confirmation after delay
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            showSaveConfirmation = false
+        }
     }
 
     func startNewScenario() {
@@ -388,6 +526,7 @@ class ScenarioCalculatorViewModel: ObservableObject {
         trailerPickupLocation = ""
         loadPickupLocation = ""
         loadPickupSameAsTrailer = false
+        loadPickupSameAsCurrentLocation = false
         dropLocations = [DropLocation()]
         trailerDropLocation = ""
         trailerDropSameAsLastDelivery = false
@@ -405,5 +544,45 @@ class ScenarioCalculatorViewModel: ObservableObject {
 
     func deleteScenario(_ scenario: LoadScenario) {
         scenarios.removeAll { $0.id == scenario.id }
+    }
+
+    // MARK: - Performance Optimization
+
+    /// Pre-resolve all locations in parallel before route calculation
+    private func preResolveAllLocations() async {
+        var locationsToResolve: [String] = []
+
+        // Current location
+        if !currentLocation.isEmpty {
+            locationsToResolve.append(currentLocation)
+        }
+
+        // Trailer pickup
+        if needsTrailerPickup && !trailerPickupLocation.isEmpty {
+            locationsToResolve.append(trailerPickupLocation)
+        }
+
+        // Load pickup
+        if !loadPickupSameAsTrailer && !loadPickupLocation.isEmpty {
+            locationsToResolve.append(loadPickupLocation)
+        }
+
+        // All drop locations
+        for drop in dropLocations where !drop.address.isEmpty {
+            locationsToResolve.append(drop.address)
+        }
+
+        // Trailer drop
+        if willHaveTrailer && !trailerDropSameAsLastDelivery && !trailerDropLocation.isEmpty {
+            locationsToResolve.append(trailerDropLocation)
+        }
+
+        // Fire off all pre-resolutions (each spawns its own background task)
+        for location in locationsToResolve {
+            mapService.preResolveLocation(location)
+        }
+
+        // Brief pause to let geocoding requests start
+        try? await Task.sleep(nanoseconds: 150_000_000) // 150ms head start
     }
 }

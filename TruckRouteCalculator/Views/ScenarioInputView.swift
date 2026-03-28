@@ -6,6 +6,11 @@ struct ScenarioInputView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                // Saved Loads Gallery (if any)
+                if !viewModel.scenarios.isEmpty {
+                    savedLoadsGallery
+                }
+
                 // Load Rate Section
                 loadRateSection
 
@@ -41,37 +46,165 @@ struct ScenarioInputView: View {
             }
             .padding()
         }
-        .background(Color(.systemGroupedBackground))
+        .background(AppTheme.backgroundPrimary)
+    }
+
+    // MARK: - Saved Loads Gallery
+
+    private var savedLoadsGallery: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "bookmark.fill")
+                    .foregroundColor(AppTheme.textOnDark)
+                    .padding(6)
+                    .background(AppTheme.darkCard)
+                    .cornerRadius(8)
+                Text("Saved Loads")
+                    .font(.headline)
+                    .foregroundColor(AppTheme.textPrimary)
+                Spacer()
+                Text("\(viewModel.scenarios.count)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(AppTheme.textSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppTheme.backgroundSecondary)
+                    .cornerRadius(8)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(viewModel.scenarios.sorted(by: { $0.createdAt > $1.createdAt }).prefix(5)) { scenario in
+                        savedLoadCard(scenario)
+                    }
+
+                    // View All button if more than 5
+                    if viewModel.scenarios.count > 5 {
+                        NavigationLink(destination: SavedLoadsView(viewModel: viewModel)) {
+                            VStack {
+                                Image(systemName: "ellipsis.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(AppTheme.textSecondary)
+                                Text("View All")
+                                    .font(.caption)
+                                    .foregroundColor(AppTheme.textSecondary)
+                            }
+                            .frame(width: 80, height: 100)
+                            .background(AppTheme.backgroundSecondary)
+                            .cornerRadius(12)
+                        }
+                    }
+                }
+            }
+
+            // Quick Stats
+            HStack(spacing: 16) {
+                let totalProfit = viewModel.scenarios.reduce(0) { $0 + $1.profit }
+                let avgProfitPerMile = viewModel.scenarios.isEmpty ? 0 : viewModel.scenarios.reduce(0) { $0 + $1.profitPerMile } / Double(viewModel.scenarios.count)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Logged")
+                        .font(.caption2)
+                        .foregroundColor(AppTheme.textSecondary)
+                    Text(totalProfit >= 0 ? "+$\(String(format: "%.0f", totalProfit))" : "-$\(String(format: "%.0f", abs(totalProfit)))")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(totalProfit >= 0 ? AppTheme.profit : AppTheme.loss)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Avg $/Mile")
+                        .font(.caption2)
+                        .foregroundColor(AppTheme.textSecondary)
+                    Text("$\(String(format: "%.2f", avgProfitPerMile))")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(avgProfitPerMile >= 0 ? AppTheme.profit : AppTheme.loss)
+                }
+
+                Spacer()
+            }
+        }
+        .themedCard()
+    }
+
+    private func savedLoadCard(_ scenario: LoadScenario) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Profit/Loss indicator
+            HStack {
+                Circle()
+                    .fill(scenario.isProfitable ? AppTheme.profit : AppTheme.loss)
+                    .frame(width: 8, height: 8)
+                Text(scenario.isProfitable ? "Profit" : "Loss")
+                    .font(.caption2)
+                    .foregroundColor(AppTheme.textSecondary)
+            }
+
+            // Profit amount
+            Text(scenario.profit >= 0 ? "+$\(String(format: "%.0f", scenario.profit))" : "-$\(String(format: "%.0f", abs(scenario.profit)))")
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(scenario.isProfitable ? AppTheme.profit : AppTheme.loss)
+
+            // Route info
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(Int(scenario.totalMiles)) mi")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.textPrimary)
+                Text("$\(String(format: "%.2f", scenario.profitPerMile))/mi")
+                    .font(.caption2)
+                    .foregroundColor(AppTheme.textSecondary)
+            }
+
+            // Date
+            Text(scenario.createdAt, style: .date)
+                .font(.caption2)
+                .foregroundColor(AppTheme.textSecondary)
+        }
+        .padding(12)
+        .frame(width: 120)
+        .background(AppTheme.backgroundCard)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(scenario.isProfitable ? AppTheme.profit.opacity(0.3) : AppTheme.loss.opacity(0.3), lineWidth: 1)
+        )
     }
 
     // MARK: - Load Rate Section
 
     private var loadRateSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Load Rate", systemImage: "dollarsign.circle.fill")
-                .font(.headline)
-                .foregroundColor(.green)
+            HStack {
+                Image(systemName: "dollarsign.circle.fill")
+                    .foregroundColor(AppTheme.textOnAccent)
+                    .padding(6)
+                    .background(AppTheme.accent)
+                    .cornerRadius(8)
+                Text("Load Rate")
+                    .font(.headline)
+                    .foregroundColor(AppTheme.textPrimary)
+            }
 
             HStack {
                 Text("$")
                     .font(.title2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(AppTheme.textSecondary)
                 TextField("0.00", text: $viewModel.loadRate)
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
                     .keyboardType(.decimalPad)
             }
             .padding()
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(AppTheme.backgroundSecondary)
             .cornerRadius(12)
 
             Text("Price offered for this load")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(AppTheme.textSecondary)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
+        .themedCard()
     }
 
     // MARK: - Current Location
@@ -96,8 +229,8 @@ struct ScenarioInputView: View {
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .onChange(of: viewModel.locationManager.currentAddress) { _, newAddress in
-            if let address = newAddress {
+        .onReceive(viewModel.locationManager.$currentAddress) { newAddress in
+            if let address = newAddress, !address.isEmpty {
                 viewModel.currentLocation = address
                 viewModel.currentLocationSuggestions = []
             }
@@ -112,16 +245,18 @@ struct ScenarioInputView: View {
                 if viewModel.locationManager.isLocating {
                     ProgressView()
                         .scaleEffect(0.7)
+                        .tint(AppTheme.textOnAccent)
                 } else {
                     Image(systemName: "location.circle.fill")
                 }
                 Text("GPS")
                     .font(.caption)
+                    .fontWeight(.semibold)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(viewModel.locationManager.isAuthorized ? Color.blue : Color.gray)
-            .foregroundColor(.white)
+            .background(viewModel.locationManager.isAuthorized ? AppTheme.darkCard : AppTheme.border)
+            .foregroundColor(viewModel.locationManager.isAuthorized ? AppTheme.textOnDark : AppTheme.textSecondary)
             .cornerRadius(8)
         }
         .disabled(viewModel.locationManager.isLocating)
@@ -154,12 +289,32 @@ struct ScenarioInputView: View {
             Label("Pickup Load", systemImage: "shippingbox.fill")
                 .font(.headline)
 
-            if viewModel.needsTrailerPickup {
-                Toggle("Same as trailer pickup", isOn: $viewModel.loadPickupSameAsTrailer)
-                    .tint(.blue)
+            // Use current location toggle
+            Toggle(isOn: $viewModel.loadPickupSameAsCurrentLocation) {
+                HStack {
+                    Image(systemName: "location.fill")
+                        .foregroundColor(.blue)
+                    Text("Use current location")
+                }
+            }
+            .tint(.blue)
+            .onChange(of: viewModel.loadPickupSameAsCurrentLocation) { _, isOn in
+                if isOn {
+                    viewModel.loadPickupSameAsTrailer = false
+                }
             }
 
-            if !viewModel.loadPickupSameAsTrailer || !viewModel.needsTrailerPickup {
+            if viewModel.needsTrailerPickup && !viewModel.loadPickupSameAsCurrentLocation {
+                Toggle("Same as trailer pickup", isOn: $viewModel.loadPickupSameAsTrailer)
+                    .tint(.blue)
+                    .onChange(of: viewModel.loadPickupSameAsTrailer) { _, isOn in
+                        if isOn {
+                            viewModel.loadPickupSameAsCurrentLocation = false
+                        }
+                    }
+            }
+
+            if !viewModel.loadPickupSameAsTrailer && !viewModel.loadPickupSameAsCurrentLocation {
                 locationTextField(
                     text: $viewModel.loadPickupLocation,
                     placeholder: "Load pickup location",
@@ -178,10 +333,15 @@ struct ScenarioInputView: View {
                 Spacer()
                 Text("$")
                     .foregroundColor(.secondary)
-                TextField("0", value: $viewModel.pickupLumperCharge, format: .number)
+                TextField(viewModel.defaultLumperCharge > 0 ? String(format: "%.0f", viewModel.defaultLumperCharge) : "0", value: $viewModel.pickupLumperCharge, format: .number)
                     .keyboardType(.decimalPad)
                     .frame(width: 80)
                     .textFieldStyle(.roundedBorder)
+            }
+            if viewModel.defaultLumperCharge > 0 && viewModel.pickupLumperCharge == 0 {
+                Text("Last used: $\(String(format: "%.0f", viewModel.defaultLumperCharge))")
+                    .font(.caption2)
+                    .foregroundColor(AppTheme.textSecondary)
             }
         }
         .padding()
@@ -367,7 +527,7 @@ struct ScenarioInputView: View {
             HStack {
                 if viewModel.isCalculating {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.textOnAccent))
                 } else {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                 }
@@ -376,8 +536,8 @@ struct ScenarioInputView: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(viewModel.canCalculate ? Color.blue : Color.gray)
-            .foregroundColor(.white)
+            .background(viewModel.canCalculate ? AppTheme.accent : AppTheme.border)
+            .foregroundColor(viewModel.canCalculate ? AppTheme.textOnAccent : AppTheme.textSecondary)
             .cornerRadius(12)
         }
         .disabled(!viewModel.canCalculate || viewModel.isCalculating)
@@ -437,6 +597,147 @@ extension Array {
     }
 }
 
+// MARK: - Saved Loads Full View
+
+struct SavedLoadsView: View {
+    @ObservedObject var viewModel: ScenarioCalculatorViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var sortedScenarios: [LoadScenario] {
+        viewModel.scenarios.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    var body: some View {
+        List {
+            // Summary Section
+            Section {
+                VStack(spacing: 16) {
+                    HStack(spacing: 24) {
+                        summaryStatView(
+                            title: "Total Loads",
+                            value: "\(viewModel.scenarios.count)",
+                            color: AppTheme.textPrimary
+                        )
+
+                        let totalProfit = viewModel.scenarios.reduce(0) { $0 + $1.profit }
+                        summaryStatView(
+                            title: "Total Profit",
+                            value: totalProfit >= 0 ? "+$\(String(format: "%.0f", totalProfit))" : "-$\(String(format: "%.0f", abs(totalProfit)))",
+                            color: totalProfit >= 0 ? AppTheme.profit : AppTheme.loss
+                        )
+
+                        let totalMiles = viewModel.scenarios.reduce(0) { $0 + $1.totalMiles }
+                        summaryStatView(
+                            title: "Total Miles",
+                            value: "\(Int(totalMiles).formatted())",
+                            color: AppTheme.textPrimary
+                        )
+                    }
+
+                    let avgProfitPerMile = viewModel.scenarios.isEmpty ? 0 : viewModel.scenarios.reduce(0) { $0 + $1.profitPerMile } / Double(viewModel.scenarios.count)
+                    HStack {
+                        Text("Average Profit per Mile:")
+                            .font(.subheadline)
+                            .foregroundColor(AppTheme.textSecondary)
+                        Spacer()
+                        Text("$\(String(format: "%.2f", avgProfitPerMile))")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(avgProfitPerMile >= 0 ? AppTheme.profit : AppTheme.loss)
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+
+            // Loads List
+            Section("Load History") {
+                ForEach(sortedScenarios) { scenario in
+                    savedLoadRow(scenario)
+                }
+                .onDelete(perform: deleteScenarios)
+            }
+        }
+        .navigationTitle("Saved Loads")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if !viewModel.scenarios.isEmpty {
+                    Button("Clear All") {
+                        viewModel.clearAllScenarios()
+                    }
+                    .foregroundColor(AppTheme.loss)
+                }
+            }
+        }
+    }
+
+    private func summaryStatView(title: String, value: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            Text(title)
+                .font(.caption)
+                .foregroundColor(AppTheme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func savedLoadRow(_ scenario: LoadScenario) -> some View {
+        HStack {
+            // Profit indicator
+            Circle()
+                .fill(scenario.isProfitable ? AppTheme.profit : AppTheme.loss)
+                .frame(width: 12, height: 12)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("$\(String(format: "%.0f", scenario.loadRate)) load")
+                    .fontWeight(.semibold)
+
+                HStack(spacing: 8) {
+                    Text("\(Int(scenario.totalMiles)) mi")
+                    Text("•")
+                    Text("\(scenario.segments.count) stops")
+                }
+                .font(.caption)
+                .foregroundColor(AppTheme.textSecondary)
+
+                Text(scenario.createdAt, style: .date)
+                    .font(.caption2)
+                    .foregroundColor(AppTheme.textSecondary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(scenario.profit >= 0 ? "+$\(String(format: "%.0f", scenario.profit))" : "-$\(String(format: "%.0f", abs(scenario.profit)))")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(scenario.isProfitable ? AppTheme.profit : AppTheme.loss)
+
+                Text("$\(String(format: "%.2f", scenario.profitPerMile))/mi")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.textSecondary)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func deleteScenarios(at offsets: IndexSet) {
+        let scenariosToDelete = offsets.map { sortedScenarios[$0] }
+        for scenario in scenariosToDelete {
+            viewModel.deleteScenario(scenario)
+        }
+    }
+}
+
 #Preview {
     ScenarioInputView(viewModel: ScenarioCalculatorViewModel())
+}
+
+#Preview("Saved Loads") {
+    NavigationView {
+        SavedLoadsView(viewModel: ScenarioCalculatorViewModel())
+    }
 }
