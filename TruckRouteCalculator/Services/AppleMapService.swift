@@ -59,8 +59,11 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
     // MARK: - Route Calculation
 
     func fetchRoute(from origin: String, to destination: String) async throws -> Route {
-        // Check route cache first
-        let routeCacheKey = "\(origin.lowercased())|\(destination.lowercased())"
+        // Check for cancellation
+        try Task.checkCancellation()
+
+        // Check route cache first with normalized keys
+        let routeCacheKey = "\(normalizeAddressForCache(origin))|\(normalizeAddressForCache(destination))"
         if let cached = cacheQueue.sync(execute: { routeCache[routeCacheKey] }) {
             return cached
         }
@@ -71,6 +74,9 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
 
         let originItem = try await originItemTask
         let destinationItem = try await destinationItemTask
+
+        // Check for cancellation after location resolution
+        try Task.checkCancellation()
 
         let request = MKDirections.Request()
         request.source = originItem
@@ -86,6 +92,9 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
 
         let directions = MKDirections(request: request)
         let response = try await directions.calculate()
+
+        // Check for cancellation after directions
+        try Task.checkCancellation()
 
         guard let mkRoute = response.routes.first else {
             throw AppleMapError.noRouteFound
@@ -103,11 +112,10 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
             states.append(stateCodeFromName(destState))
         }
 
-        // For longer routes, sample intermediate points for state crossings
-        // Only do this for routes > 200 miles to reduce API calls
-        if distanceMiles > 200 {
-            let intermediateStates = await extractIntermediateStatesParallel(from: mkRoute.polyline, existingStates: states)
-            states = mergeStatesInOrder(origin: states.first, destination: states.last, intermediate: intermediateStates)
+        // Extract intermediate states using offline coordinate lookup (no network calls)
+        // This is synchronous and fast (<2ms) - no hanging possible
+        if distanceMiles > 100 {
+            states = extractStatesFromPolyline(mkRoute.polyline, existingStates: states)
         }
 
         let route = Route(
@@ -128,18 +136,41 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
 
     // MARK: - State Extraction
 
+    /// Check if we should bother with intermediate state detection based on bounding box
+    private func shouldCheckIntermediateStates(polyline: MKPolyline, knownStates: [String]) -> Bool {
+        // If we already have 2+ states from origin/destination, likely crossing multiple
+        if knownStates.count >= 2 {
+            return true
+        }
+
+        // Check bounding box size - approximate state widths
+        let boundingRect = polyline.boundingMapRect
+        let region = MKCoordinateRegion(boundingRect)
+
+        // Average US state is ~3 degrees lat/lon wide
+        // If bounding box spans > 4 degrees in either direction, likely multiple states
+        let latSpan = region.span.latitudeDelta
+        let lonSpan = region.span.longitudeDelta
+
+        return latSpan > 4.0 || lonSpan > 4.0
+    }
+
     private func extractIntermediateStates(from polyline: MKPolyline, existingStates: [String]) async -> [String] {
         // Use parallel version for better performance
         return await extractIntermediateStatesParallel(from: polyline, existingStates: existingStates)
     }
 
     /// Parallel version of state extraction - all geocoding happens concurrently
+    /// Now with cancellation support and 3-second per-geocode timeout
     private func extractIntermediateStatesParallel(from polyline: MKPolyline, existingStates: [String]) async -> [String] {
         let pointCount = polyline.pointCount
         guard pointCount > 2 else { return [] }
 
-        // Sample 5 points along the route (reduced from 10 for speed)
-        let sampleInterval = max(pointCount / 5, 1)
+        // Check for cancellation early
+        guard !Task.isCancelled else { return [] }
+
+        // Sample only 3 points for speed (reduced from 5)
+        let sampleInterval = max(pointCount / 3, 1)
         let points = polyline.points()
 
         // Collect sample coordinates
@@ -148,18 +179,34 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
             sampleCoordinates.append((index: i, coordinate: points[i].coordinate))
         }
 
-        // Fetch all states in parallel using TaskGroup
+        // Limit to max 3 samples
+        if sampleCoordinates.count > 3 {
+            sampleCoordinates = Array(sampleCoordinates.prefix(3))
+        }
+
+        // Fetch all states in parallel using TaskGroup with timeout
         var indexedStates: [(index: Int, state: String)] = []
+        let geocodeTimeout: UInt64 = 3_000_000_000 // 3 seconds per geocode
 
         await withTaskGroup(of: (Int, String?).self) { group in
             for sample in sampleCoordinates {
                 group.addTask {
-                    let state = await self.reverseGeocodeState(coordinate: sample.coordinate)
+                    // Check for cancellation
+                    guard !Task.isCancelled else { return (sample.index, nil) }
+
+                    // Race between geocode and timeout
+                    let state = await self.reverseGeocodeStateWithTimeout(
+                        coordinate: sample.coordinate,
+                        timeoutNanoseconds: geocodeTimeout
+                    )
                     return (sample.index, state)
                 }
             }
 
             for await (index, state) in group {
+                // Check for cancellation between results
+                if Task.isCancelled { break }
+
                 if let state = state {
                     indexedStates.append((index: index, state: state))
                 }
@@ -177,6 +224,26 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
         }
 
         return foundStates
+    }
+
+    /// Reverse geocode with a timeout - returns nil if geocode takes too long
+    private func reverseGeocodeStateWithTimeout(coordinate: CLLocationCoordinate2D, timeoutNanoseconds: UInt64) async -> String? {
+        // Use a simple race: start geocode, but give up after timeout
+        return await withTaskGroup(of: String?.self) { group in
+            group.addTask {
+                await self.reverseGeocodeState(coordinate: coordinate)
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: timeoutNanoseconds)
+                return nil as String?
+            }
+
+            // Return first result (either the state or nil from timeout)
+            let result = await group.next() ?? nil
+            group.cancelAll()
+            return result
+        }
     }
 
     private func reverseGeocodeState(coordinate: CLLocationCoordinate2D) async -> String? {
@@ -214,6 +281,41 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
         return result
     }
 
+    // MARK: - Offline State Extraction (Synchronous)
+
+    /// Extract states from polyline using offline coordinate lookup
+    /// This is synchronous, fast (<2ms), and never hangs
+    private func extractStatesFromPolyline(_ polyline: MKPolyline, existingStates: [String]) -> [String] {
+        let pointCount = polyline.pointCount
+        guard pointCount > 2 else { return existingStates }
+
+        // Sample 20 points along the route (CPU-cheap local lookup)
+        let sampleCount = 20
+        let interval = max(pointCount / sampleCount, 1)
+        let points = polyline.points()
+
+        var foundStates = existingStates
+
+        for i in stride(from: 0, to: pointCount, by: interval) {
+            let coord = points[i].coordinate
+            if let stateCode = StateLookupService.getStateCode(for: coord) {
+                if !foundStates.contains(stateCode) {
+                    foundStates.append(stateCode)
+                }
+            }
+        }
+
+        // Also check the last point to ensure destination state is included
+        let lastCoord = points[pointCount - 1].coordinate
+        if let lastState = StateLookupService.getStateCode(for: lastCoord) {
+            if !foundStates.contains(lastState) {
+                foundStates.append(lastState)
+            }
+        }
+
+        return foundStates
+    }
+
     private func stateCodeFromName(_ stateName: String) -> String {
         // Map full state names to codes
         let stateMap: [String: String] = [
@@ -243,8 +345,8 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
     // MARK: - Private
 
     private func resolveLocation(_ address: String) async throws -> MKMapItem {
-        // Check cache first
-        let cacheKey = address.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        // Check cache first with normalized key
+        let cacheKey = normalizeAddressForCache(address)
         if let cached = cacheQueue.sync(execute: { locationCache[cacheKey] }) {
             return cached
         }
@@ -276,12 +378,44 @@ class AppleMapService: NSObject, MKLocalSearchCompleterDelegate {
         }
     }
 
+    /// Test if a location can be resolved (for validation)
+    func testResolveLocation(_ address: String) async throws -> Bool {
+        _ = try await resolveLocation(address)
+        return true
+    }
+
     /// Clear caches (call when starting fresh calculation)
     func clearCaches() {
         cacheQueue.sync {
             locationCache.removeAll()
             routeCache.removeAll()
         }
+    }
+
+    // MARK: - Cache Normalization
+
+    /// Normalize address strings for better cache hit rates
+    private func normalizeAddressForCache(_ address: String) -> String {
+        var normalized = address
+            .lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Remove common suffixes that don't affect geocoding
+        let removals = [", usa", ", united states", " usa", " united states", ".", ","]
+        for removal in removals {
+            normalized = normalized.replacingOccurrences(of: removal, with: "")
+        }
+
+        // Normalize state abbreviations with/without comma
+        // "dallas tx" -> "dallas tx", "dallas, tx" -> "dallas tx"
+        normalized = normalized.replacingOccurrences(of: ", ", with: " ")
+
+        // Collapse multiple spaces
+        while normalized.contains("  ") {
+            normalized = normalized.replacingOccurrences(of: "  ", with: " ")
+        }
+
+        return normalized.trimmingCharacters(in: .whitespaces)
     }
 }
 

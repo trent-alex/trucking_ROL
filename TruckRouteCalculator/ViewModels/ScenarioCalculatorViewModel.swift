@@ -3,6 +3,13 @@ import SwiftUI
 import CoreLocation
 import Combine
 
+/// Error thrown when calculation exceeds timeout
+struct TimeoutError: Error, LocalizedError {
+    var errorDescription: String? {
+        "Operation timed out"
+    }
+}
+
 @MainActor
 class ScenarioCalculatorViewModel: ObservableObject {
     // MARK: - Current Scenario
@@ -36,6 +43,21 @@ class ScenarioCalculatorViewModel: ObservableObject {
     }
     @Published var showingResults: Bool = false
     @Published var showSaveConfirmation: Bool = false
+
+    // MARK: - Calculation Progress
+    @Published var calculationProgress: String = ""
+    @Published var calculationStartTime: Date?
+    @Published var estimatedSegments: Int = 0
+    @Published var completedSegments: Int = 0
+    private var calculationTask: Task<Void, Never>?
+
+    /// Timeout for route calculation (30 seconds - if it takes longer, addresses are bad)
+    private let calculationTimeout: TimeInterval = 30
+
+    // MARK: - Location Validation
+    @Published var invalidLocations: Set<String> = []  // Field names with invalid locations
+    @Published var isValidatingLocations: Bool = false
+    @Published var validationMessage: String?
 
     // MARK: - Profile
     @Published var driverProfile: DriverProfile?
@@ -344,23 +366,138 @@ class ScenarioCalculatorViewModel: ObservableObject {
 
     // MARK: - Calculate
 
+    /// Start calculation with cancellation support
+    func startCalculation() {
+        // Cancel any existing calculation
+        calculationTask?.cancel()
+
+        calculationTask = Task {
+            // Validate locations first
+            let isValid = await validateAllLocations()
+            if isValid {
+                await calculateScenario()
+            }
+        }
+    }
+
+    // MARK: - Location Validation
+
+    /// Validate all entered locations before calculation
+    func validateAllLocations() async -> Bool {
+        isValidatingLocations = true
+        invalidLocations.removeAll()
+        validationMessage = nil
+
+        var locationsToValidate: [(fieldName: String, address: String)] = []
+
+        // Current location
+        if !currentLocation.isEmpty {
+            locationsToValidate.append(("currentLocation", currentLocation))
+        }
+
+        // Trailer pickup
+        if needsTrailerPickup && !trailerPickupLocation.isEmpty {
+            locationsToValidate.append(("trailerPickup", trailerPickupLocation))
+        }
+
+        // Load pickup
+        if !loadPickupSameAsTrailer && !loadPickupSameAsCurrentLocation && !loadPickupLocation.isEmpty {
+            locationsToValidate.append(("loadPickup", loadPickupLocation))
+        }
+
+        // Drop locations
+        for (index, drop) in dropLocations.enumerated() where !drop.address.isEmpty {
+            locationsToValidate.append(("drop_\(index)", drop.address))
+        }
+
+        // Trailer drop
+        if willHaveTrailer && !trailerDropSameAsLastDelivery && !trailerDropLocation.isEmpty {
+            locationsToValidate.append(("trailerDrop", trailerDropLocation))
+        }
+
+        // Validate all in parallel
+        await withTaskGroup(of: (String, Bool).self) { group in
+            for (fieldName, address) in locationsToValidate {
+                group.addTask {
+                    let isValid = await self.validateLocation(address)
+                    return (fieldName, isValid)
+                }
+            }
+
+            for await (fieldName, isValid) in group {
+                if !isValid {
+                    invalidLocations.insert(fieldName)
+                }
+            }
+        }
+
+        isValidatingLocations = false
+
+        if !invalidLocations.isEmpty {
+            let count = invalidLocations.count
+            validationMessage = count == 1
+                ? "1 location could not be found. Please check the highlighted field."
+                : "\(count) locations could not be found. Please check the highlighted fields."
+            errorMessage = validationMessage
+            return false
+        }
+
+        return true
+    }
+
+    /// Validate a single location
+    private func validateLocation(_ address: String) async -> Bool {
+        do {
+            _ = try await mapService.testResolveLocation(address)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Check if a specific field has an invalid location
+    func isLocationInvalid(_ fieldName: String) -> Bool {
+        invalidLocations.contains(fieldName)
+    }
+
+    /// Clear validation error for a field when user edits it
+    func clearValidationError(for fieldName: String) {
+        invalidLocations.remove(fieldName)
+        if invalidLocations.isEmpty {
+            validationMessage = nil
+        }
+    }
+
+    /// Cancel ongoing calculation
+    func cancelCalculation() {
+        calculationTask?.cancel()
+        calculationTask = nil
+        isCalculating = false
+        calculationProgress = ""
+        errorMessage = "Calculation cancelled"
+    }
+
     func calculateScenario() async {
         guard canCalculate else { return }
 
         isCalculating = true
         errorMessage = nil
+        calculationStartTime = Date()
+        calculationProgress = "Preparing route..."
+        completedSegments = 0
 
         do {
+            // Check for cancellation
+            try Task.checkCancellation()
+
             var scenario = LoadScenario(
                 loadRate: Double(loadRate) ?? 0,
                 pickupLumperCharge: pickupLumperCharge,
                 dropLumperCharges: dropLocations.map { $0.lumperCharge }
             )
-            var segments: [RouteSegment] = []
 
             let profile = driverProfile ?? DriverProfile.default
             let emptyWeight = profile.estimatedEmptyWeight
-            let loadedWeight = emptyWeight + totalLoadWeight
 
             // Update cost calculator
             costCalculator = CostCalculator(
@@ -372,79 +509,45 @@ class ScenarioCalculatorViewModel: ObservableObject {
                 nightlyRate: nightlyRate
             )
 
-            // Pre-resolve happens on location selection, no delay needed here
+            // Build all route requests upfront
+            let segmentRequests = buildSegmentRequests(emptyWeight: emptyWeight)
+            estimatedSegments = segmentRequests.count
+            calculationProgress = "Fetching \(segmentRequests.count) route segments..."
 
-            // Build route segments based on configuration
-            var previousLocation = currentLocation
+            try Task.checkCancellation()
 
-            // Segment 1: Deadhead to trailer (only if driver needs to pick up a trailer)
-            if needsTrailerPickup && !trailerPickupLocation.isEmpty {
-                let segment = try await buildSegment(
-                    type: .deadheadToTrailer,
-                    from: previousLocation,
-                    to: trailerPickupLocation,
-                    weight: emptyWeight - 14000  // Bobtail weight without trailer
-                )
-                segments.append(segment)
-                previousLocation = trailerPickupLocation
+            // Fetch all routes in parallel with timeout
+            let routes = try await withTimeout(seconds: calculationTimeout) {
+                try await self.fetchRoutesInParallel(requests: segmentRequests)
             }
 
-            // Segment 2: Deadhead to pickup (if different from current location or trailer)
-            let actualPickupLocation: String
-            if loadPickupSameAsCurrentLocation {
-                actualPickupLocation = currentLocation
-            } else if needsTrailerPickup && loadPickupSameAsTrailer {
-                actualPickupLocation = trailerPickupLocation
-            } else {
-                actualPickupLocation = loadPickupLocation
-            }
-            if previousLocation != actualPickupLocation && !actualPickupLocation.isEmpty {
-                let segment = try await buildSegment(
-                    type: .deadheadToPickup,
-                    from: previousLocation,
-                    to: actualPickupLocation,
-                    weight: emptyWeight
-                )
-                segments.append(segment)
-                previousLocation = actualPickupLocation
-            }
+            try Task.checkCancellation()
+            calculationProgress = "Building cost analysis..."
 
-            // Segment 3+: Loaded segments to each drop
-            var remainingWeight = totalLoadWeight
-            for (index, drop) in dropLocations.enumerated() {
-                let currentWeight = emptyWeight + remainingWeight
-                let segmentType: SegmentType = index == 0 ? .pickupToDelivery : .deliveryToDelivery
+            // Build segments from cached routes
+            var segments: [RouteSegment] = []
+            for (index, request) in segmentRequests.enumerated() {
+                try Task.checkCancellation()
 
-                var segment = try await buildSegment(
-                    type: segmentType,
-                    from: previousLocation,
-                    to: drop.address,
-                    weight: currentWeight
-                )
-                segment.dropWeight = drop.weightToDrop
-                segments.append(segment)
-
-                remainingWeight -= drop.weightToDrop
-                previousLocation = drop.address
-            }
-
-            // Segment: Deadhead to drop trailer (if different from last delivery)
-            if willHaveTrailer {
-                let actualTrailerDrop = trailerDropSameAsLastDelivery ? dropLocations.last?.address ?? "" : trailerDropLocation
-                if !actualTrailerDrop.isEmpty && previousLocation != actualTrailerDrop {
-                    let segment = try await buildSegment(
-                        type: .deadheadToDropTrailer,
-                        from: previousLocation,
-                        to: actualTrailerDrop,
-                        weight: emptyWeight
-                    )
-                    segments.append(segment)
+                guard let route = routes["\(request.origin)|\(request.destination)"] else {
+                    throw AppleMapError.noRouteFound
                 }
+
+                var segment = buildSegmentFromRoute(
+                    route: route,
+                    type: request.type,
+                    weight: request.weight
+                )
+                segment.dropWeight = request.dropWeight
+                segments.append(segment)
+
+                completedSegments = index + 1
             }
 
             scenario.segments = segments
             currentScenario = scenario
             showingResults = true
+            calculationProgress = ""
 
             // Save last used lumper charge for prefill
             let maxLumper = max(pickupLumperCharge, dropLocations.map { $0.lumperCharge }.max() ?? 0)
@@ -452,21 +555,171 @@ class ScenarioCalculatorViewModel: ObservableObject {
                 defaultLumperCharge = maxLumper
             }
 
+        } catch is CancellationError {
+            // Already handled in cancelCalculation
+            return
+        } catch is TimeoutError {
+            errorMessage = "Unable to calculate route. One or more addresses could not be resolved. Use specific addresses (e.g., '1234 Main St, Dallas, TX 75201')."
+        } catch let error as AppleMapError {
+            switch error {
+            case .locationNotFound(let address):
+                errorMessage = "Address not found: \(address)"
+            case .noRouteFound:
+                errorMessage = "No driving route exists between these locations."
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "Route calculation failed. Check addresses and try again."
         }
 
         isCalculating = false
+        isValidatingLocations = false
+        calculationProgress = ""
     }
 
-    private func buildSegment(
-        type: SegmentType,
-        from origin: String,
-        to destination: String,
-        weight: Double
-    ) async throws -> RouteSegment {
-        let route = try await mapService.fetchRoute(from: origin, to: destination)
+    /// Execute async work with a timeout
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
 
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw TimeoutError()
+            }
+
+            // Return first result, cancel the other
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
+    }
+
+    // MARK: - Parallel Route Fetching
+
+    private struct SegmentRequest {
+        let type: SegmentType
+        let origin: String
+        let destination: String
+        let weight: Double
+        let dropWeight: Double
+    }
+
+    /// Build all segment requests upfront so we know all origin-destination pairs
+    private func buildSegmentRequests(emptyWeight: Double) -> [SegmentRequest] {
+        var requests: [SegmentRequest] = []
+        var previousLocation = currentLocation
+
+        // Segment 1: Deadhead to trailer
+        if needsTrailerPickup && !trailerPickupLocation.isEmpty {
+            requests.append(SegmentRequest(
+                type: .deadheadToTrailer,
+                origin: previousLocation,
+                destination: trailerPickupLocation,
+                weight: emptyWeight - 14000,
+                dropWeight: 0
+            ))
+            previousLocation = trailerPickupLocation
+        }
+
+        // Segment 2: Deadhead to pickup
+        let actualPickupLocation: String
+        if loadPickupSameAsCurrentLocation {
+            actualPickupLocation = currentLocation
+        } else if needsTrailerPickup && loadPickupSameAsTrailer {
+            actualPickupLocation = trailerPickupLocation
+        } else {
+            actualPickupLocation = loadPickupLocation
+        }
+        if previousLocation != actualPickupLocation && !actualPickupLocation.isEmpty {
+            requests.append(SegmentRequest(
+                type: .deadheadToPickup,
+                origin: previousLocation,
+                destination: actualPickupLocation,
+                weight: emptyWeight,
+                dropWeight: 0
+            ))
+            previousLocation = actualPickupLocation
+        }
+
+        // Segment 3+: Loaded segments to each drop
+        var remainingWeight = totalLoadWeight
+        for (index, drop) in dropLocations.enumerated() {
+            let currentWeight = emptyWeight + remainingWeight
+            let segmentType: SegmentType = index == 0 ? .pickupToDelivery : .deliveryToDelivery
+
+            requests.append(SegmentRequest(
+                type: segmentType,
+                origin: previousLocation,
+                destination: drop.address,
+                weight: currentWeight,
+                dropWeight: drop.weightToDrop
+            ))
+
+            remainingWeight -= drop.weightToDrop
+            previousLocation = drop.address
+        }
+
+        // Final segment: Deadhead to drop trailer
+        if willHaveTrailer {
+            let actualTrailerDrop = trailerDropSameAsLastDelivery ? dropLocations.last?.address ?? "" : trailerDropLocation
+            if !actualTrailerDrop.isEmpty && previousLocation != actualTrailerDrop {
+                requests.append(SegmentRequest(
+                    type: .deadheadToDropTrailer,
+                    origin: previousLocation,
+                    destination: actualTrailerDrop,
+                    weight: emptyWeight,
+                    dropWeight: 0
+                ))
+            }
+        }
+
+        return requests
+    }
+
+    /// Fetch all routes in parallel using TaskGroup
+    private func fetchRoutesInParallel(requests: [SegmentRequest]) async throws -> [String: Route] {
+        // Deduplicate route requests (same origin-destination may appear multiple times)
+        var uniquePairs: Set<String> = []
+        var pairsToFetch: [(origin: String, destination: String)] = []
+
+        for request in requests {
+            let key = "\(request.origin)|\(request.destination)"
+            if !uniquePairs.contains(key) {
+                uniquePairs.insert(key)
+                pairsToFetch.append((request.origin, request.destination))
+            }
+        }
+
+        // Fetch all routes in parallel (no nested timeout - outer timeout handles overall time)
+        var routes: [String: Route] = [:]
+
+        try await withThrowingTaskGroup(of: (String, Route?).self) { group in
+            for pair in pairsToFetch {
+                group.addTask {
+                    // Check for cancellation before starting
+                    try Task.checkCancellation()
+
+                    let route = try await self.mapService.fetchRoute(from: pair.origin, to: pair.destination)
+                    return ("\(pair.origin)|\(pair.destination)", route)
+                }
+            }
+
+            for try await (key, route) in group {
+                // Check for cancellation between results
+                try Task.checkCancellation()
+
+                if let route = route {
+                    routes[key] = route
+                }
+            }
+        }
+
+        return routes
+    }
+
+    /// Build a segment from a pre-fetched route
+    private func buildSegmentFromRoute(route: Route, type: SegmentType, weight: Double) -> RouteSegment {
         let effectiveMPG = costCalculator.calculateEffectiveMPG(totalWeight: weight)
         let breakdown = costCalculator.calculateCostBreakdown(
             distanceMiles: route.distanceMiles,
@@ -476,8 +729,8 @@ class ScenarioCalculatorViewModel: ObservableObject {
 
         var segment = RouteSegment(
             segmentType: type,
-            origin: origin,
-            destination: destination,
+            origin: route.origin,
+            destination: route.destination,
             distanceMiles: route.distanceMiles,
             weightAtSegment: weight
         )
@@ -546,43 +799,4 @@ class ScenarioCalculatorViewModel: ObservableObject {
         scenarios.removeAll { $0.id == scenario.id }
     }
 
-    // MARK: - Performance Optimization
-
-    /// Pre-resolve all locations in parallel before route calculation
-    private func preResolveAllLocations() async {
-        var locationsToResolve: [String] = []
-
-        // Current location
-        if !currentLocation.isEmpty {
-            locationsToResolve.append(currentLocation)
-        }
-
-        // Trailer pickup
-        if needsTrailerPickup && !trailerPickupLocation.isEmpty {
-            locationsToResolve.append(trailerPickupLocation)
-        }
-
-        // Load pickup
-        if !loadPickupSameAsTrailer && !loadPickupLocation.isEmpty {
-            locationsToResolve.append(loadPickupLocation)
-        }
-
-        // All drop locations
-        for drop in dropLocations where !drop.address.isEmpty {
-            locationsToResolve.append(drop.address)
-        }
-
-        // Trailer drop
-        if willHaveTrailer && !trailerDropSameAsLastDelivery && !trailerDropLocation.isEmpty {
-            locationsToResolve.append(trailerDropLocation)
-        }
-
-        // Fire off all pre-resolutions (each spawns its own background task)
-        for location in locationsToResolve {
-            mapService.preResolveLocation(location)
-        }
-
-        // Brief pause to let geocoding requests start
-        try? await Task.sleep(nanoseconds: 150_000_000) // 150ms head start
-    }
 }
