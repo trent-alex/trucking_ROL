@@ -112,6 +112,16 @@ struct ScenarioSettingsView: View {
     @State private var useCustomMPG: Bool = false
     @State private var hasChanges: Bool = false
 
+    // Editable truck settings
+    @State private var selectedMake: TruckMake = .freightliner
+    @State private var selectedSpec: TruckSpec?
+    @State private var truckYear: Int = 2020
+    private let currentYear = Calendar.current.component(.year, from: Date())
+
+    var availableModels: [TruckSpec] {
+        TruckDatabase.models(for: selectedMake, year: truckYear)
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -160,16 +170,45 @@ struct ScenarioSettingsView: View {
                 }
 
                 if let profile = viewModel.driverProfile {
-                    Section("Truck Profile") {
-                        HStack {
-                            Text("Truck")
-                            Spacer()
-                            Text(profile.truckDisplayName)
-                                .foregroundColor(.secondary)
+                    Section("Truck") {
+                        Picker("Model Year", selection: $truckYear) {
+                            ForEach((1990...currentYear).reversed(), id: \.self) { year in
+                                Text(String(year)).tag(year)
+                            }
+                        }
+                        .onChange(of: truckYear) { _, _ in
+                            hasChanges = true
+                            // Reset spec if not valid for new year
+                            if let current = selectedSpec, !current.isValidForYear(truckYear) {
+                                selectedSpec = availableModels.first
+                            }
                         }
 
+                        Picker("Make", selection: $selectedMake) {
+                            ForEach(TruckMake.allCases.filter { $0 != .custom }) { make in
+                                Text(make.rawValue).tag(make)
+                            }
+                        }
+                        .onChange(of: selectedMake) { _, _ in
+                            hasChanges = true
+                            selectedSpec = availableModels.first
+                        }
+
+                        if !availableModels.isEmpty {
+                            Picker("Model", selection: $selectedSpec) {
+                                ForEach(availableModels) { spec in
+                                    Text(spec.model).tag(spec as TruckSpec?)
+                                }
+                            }
+                            .onChange(of: selectedSpec) { _, _ in
+                                hasChanges = true
+                            }
+                        }
+                    }
+
+                    Section("Configuration") {
                         // Editable Configuration
-                        Picker("Configuration", selection: $editedConfiguration) {
+                        Picker("Setup", selection: $editedConfiguration) {
                             ForEach(TruckConfiguration.allCases) { config in
                                 Text(config.rawValue).tag(config)
                             }
@@ -280,6 +319,17 @@ struct ScenarioSettingsView: View {
                     editedTrailerType = profile.trailerType ?? .dryvan
                     useCustomMPG = profile.useCustomMPG
                     editedMPG = profile.customMPGValue ?? profile.baseMPG
+                    truckYear = profile.truckYear
+
+                    // Initialize truck make/model from profile
+                    if let specId = profile.selectedTruckSpecId,
+                       let spec = TruckDatabase.spec(id: specId) {
+                        selectedMake = spec.make
+                        selectedSpec = spec
+                    } else {
+                        selectedMake = .freightliner
+                        selectedSpec = availableModels.first
+                    }
                 }
             }
             .adaptiveFormLayout()
@@ -287,13 +337,13 @@ struct ScenarioSettingsView: View {
         .navigationViewStyle(.stack)
     }
 
-    // Calculate MPG based on edited values
+    // Calculate MPG based on edited values (uses selected spec for preview)
     private func calculatedMPG(profile: DriverProfile) -> Double {
         let truckBaseMPG: Double
-        if profile.useCustomTruck, let custom = profile.customTruck {
-            truckBaseMPG = custom.baseMPG
-        } else if let specId = profile.selectedTruckSpecId, let spec = TruckDatabase.spec(id: specId) {
+        if let spec = selectedSpec {
             truckBaseMPG = spec.baseMPG
+        } else if profile.useCustomTruck, let custom = profile.customTruck {
+            truckBaseMPG = custom.baseMPG
         } else {
             truckBaseMPG = 7.0
         }
@@ -310,19 +360,15 @@ struct ScenarioSettingsView: View {
         }
     }
 
-    // Calculate weight based on edited values
+    // Calculate weight based on edited values (uses selected spec for preview)
     private func calculatedWeight(profile: DriverProfile) -> Double {
         let truckWeight: Double
-        if profile.useCustomTruck, let custom = profile.customTruck {
-            truckWeight = custom.emptyWeight
-        } else if let specId = profile.selectedTruckSpecId, let spec = TruckDatabase.spec(id: specId) {
+        if let spec = selectedSpec {
             truckWeight = spec.emptyWeight
+        } else if profile.useCustomTruck, let custom = profile.customTruck {
+            truckWeight = custom.emptyWeight
         } else {
-            switch profile.truckType {
-            case .dayCab: truckWeight = 16000
-            case .sleeperCab: truckWeight = 20000
-            case .caboover: truckWeight = 15000
-            }
+            truckWeight = 20000  // Default sleeper cab
         }
 
         guard editedConfiguration == .bobtailWithTrailer else {
@@ -343,6 +389,14 @@ struct ScenarioSettingsView: View {
     // Apply changes to profile and recalculate
     private func applyChanges() {
         guard var profile = viewModel.driverProfile else { return }
+
+        // Update truck selection
+        if let spec = selectedSpec {
+            profile.selectedTruckSpecId = spec.id
+            profile.useCustomTruck = false
+            profile.customTruck = nil
+        }
+        profile.truckYear = truckYear
 
         // Update profile with new values
         profile.configuration = editedConfiguration

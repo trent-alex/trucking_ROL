@@ -711,58 +711,63 @@ struct ScenarioInputView: View {
         suggestion: LocationSuggestion,
         onSelect: @escaping (LocationSuggestion) -> Void
     ) -> some View {
-        HStack {
-            Image(systemName: "mappin.circle.fill")
-                .foregroundColor(.blue)
-            Text(suggestion.displayText)
-                .lineLimit(1)
-            Spacer()
-            Image(systemName: "arrow.up.left")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .font(.subheadline)
-        .foregroundColor(.primary)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 14)
-        .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(10)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            // Dismiss keyboard first to prevent race conditions
+        // Capture suggestion value immediately to survive re-renders
+        let capturedSuggestion = suggestion
+
+        return Button {
+            // Dismiss keyboard first
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            // Small delay to let keyboard dismiss complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                onSelect(suggestion)
+            // Select immediately - Button handles tap reliably
+            onSelect(capturedSuggestion)
+        } label: {
+            HStack {
+                Image(systemName: "mappin.circle.fill")
+                    .foregroundColor(.blue)
+                Text(suggestion.displayText)
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "arrow.up.left")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
+            .font(.subheadline)
+            .foregroundColor(.primary)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 14)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(10)
         }
+        .buttonStyle(.plain)
     }
 
     /// Suggestion row for drop locations
     private func dropSuggestionRow(suggestion: LocationSuggestion, index: Int) -> some View {
-        HStack {
-            Image(systemName: "mappin.circle.fill")
-                .foregroundColor(.blue)
-            Text(suggestion.displayText)
-                .lineLimit(1)
-            Spacer()
-            Image(systemName: "arrow.up.left")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .font(.subheadline)
-        .foregroundColor(.primary)
-        .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .cornerRadius(8)
-        .contentShape(Rectangle())
-        .onTapGesture {
+        // Capture values immediately to survive re-renders
+        let capturedSuggestion = suggestion
+        let capturedIndex = index
+
+        return Button {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                viewModel.selectDropLocation(suggestion, at: index)
+            viewModel.selectDropLocation(capturedSuggestion, at: capturedIndex)
+        } label: {
+            HStack {
+                Image(systemName: "mappin.circle.fill")
+                    .foregroundColor(.blue)
+                Text(suggestion.displayText)
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "arrow.up.left")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
+            .font(.subheadline)
+            .foregroundColor(.primary)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(Color(.tertiarySystemGroupedBackground))
+            .cornerRadius(8)
         }
+        .buttonStyle(.plain)
     }
 }
 
