@@ -7,6 +7,9 @@ class FuelPriceService {
     private let cacheTimestampKey = "cachedDieselPricesTimestamp"
     private let cacheExpirationHours: Double = 24
 
+    // CloudFront CDN endpoint (primary source)
+    private let cdnURL = "https://dyshf2yksqh3g.cloudfront.net/diesel-prices.json"
+
     // PADD region codes for EIA API
     enum PADDRegion: String, CaseIterable {
         case eastCoast = "R1X"      // PADD 1: East Coast
@@ -118,6 +121,77 @@ class FuelPriceService {
     // MARK: - Private Methods
 
     private func fetchAllRegionalPrices() async -> [String: Double]? {
+        // Try CloudFront CDN first (faster, no API key needed)
+        if let cdnPrices = await fetchFromCDN() {
+            return cdnPrices
+        }
+
+        // Fall back to direct EIA API
+        return await fetchFromEIA()
+    }
+
+    // Map CDN region codes to internal PADD codes
+    private static let cdnToInternalRegion: [String: String] = [
+        "R10": "R1X",      // East Coast
+        "R20": "R2X",      // Midwest
+        "R30": "R3X",      // Gulf Coast
+        "R40": "R4X",      // Rocky Mountain
+        "R50": "R5X",      // West Coast
+        "SCA": "R5XCA",    // California
+        "NUS": "NUS"       // National
+    ]
+
+    /// Fetch fuel prices from CloudFront CDN (primary source)
+    private func fetchFromCDN() async -> [String: Double]? {
+        guard let url = URL(string: cdnURL) else { return nil }
+
+        do {
+            let (data, response) = try await session.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                return nil
+            }
+
+            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let regions = json["regions"] as? [String: [String: Any]] else {
+                return nil
+            }
+
+            // Parse CDN JSON format: { "regions": { "R10": { "price": "3.52" }, ... } }
+            var prices: [String: Double] = [:]
+            for (cdnCode, regionData) in regions {
+                // Handle price as string or double
+                var price: Double? = nil
+                if let priceDouble = regionData["price"] as? Double {
+                    price = priceDouble
+                } else if let priceString = regionData["price"] as? String {
+                    price = Double(priceString)
+                }
+
+                if let price = price {
+                    // Map CDN region code to internal code
+                    let internalCode = Self.cdnToInternalRegion[cdnCode] ?? cdnCode
+                    prices[internalCode] = price
+                }
+            }
+
+            // Also get national average if present (handle string or double)
+            if let nationalAvg = json["national_average"] as? Double {
+                prices["NUS"] = nationalAvg
+            } else if let nationalAvgString = json["national_average"] as? String,
+                      let nationalAvg = Double(nationalAvgString) {
+                prices["NUS"] = nationalAvg
+            }
+
+            return prices.isEmpty ? nil : prices
+        } catch {
+            return nil
+        }
+    }
+
+    /// Fetch fuel prices directly from EIA API (fallback)
+    private func fetchFromEIA() async -> [String: Double]? {
         guard apiKey != "YOUR_EIA_API_KEY" else { return nil }
 
         // Fetch all regions in one request
