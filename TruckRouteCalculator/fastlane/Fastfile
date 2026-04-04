@@ -17,11 +17,44 @@ platform :ios do
   lane :test do
     scan(
       scheme: "TruckRouteCalculator",
-      devices: ["iPhone 15 Pro"],
+      devices: ["iPhone 17 Pro"],
       configuration: "Debug",
       clean: true,
       code_coverage: true
     )
+  end
+
+  desc "Run UI tests and generate report"
+  lane :ui_test do |options|
+    # Clear previous results
+    FileUtils.rm_rf("../test_output")
+
+    # Run UI tests
+    scan(
+      scheme: "TruckRouteCalculator",
+      devices: [options[:device] || "iPhone 17 Pro"],
+      only_testing: ["TruckRouteCalculatorUITests"],
+      result_bundle: true,
+      output_directory: "./test_output",
+      output_types: "html,junit",
+      buildlog_path: "./test_output/logs",
+      clean: true
+    )
+
+    # Generate summary
+    puts "\n" + "=" * 70
+    puts "UI TEST REPORT"
+    puts "=" * 70
+    puts "Results saved to: ./test_output/"
+    puts "Open test_output/report.html for detailed results"
+    puts "Screenshots saved in test attachments"
+    puts "=" * 70 + "\n"
+  end
+
+  desc "Run all tests (unit + UI)"
+  lane :test_all do
+    test
+    ui_test
   end
 
   desc "Build and test"
@@ -85,14 +118,27 @@ platform :ios do
     build_app(
       scheme: "TruckRouteCalculator",
       export_method: "app-store",
-      clean: true
+      clean: true,
+      export_options: {
+        provisioningProfiles: {
+          "com.pivotallift.TruckRouteCalculator" => "TruckRouteCalculator AppStore"
+        }
+      }
+    )
+    api_key = app_store_connect_api_key(
+      key_id: "FLU3XD48JB",
+      issuer_id: "a6c067d7-5b9a-45cc-a189-299e50ed0255",
+      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_FLU3XD48JB.p8")
     )
     upload_to_app_store(
+      api_key: api_key,
       force: true,
       skip_metadata: false,
       skip_screenshots: options[:skip_screenshots] != false,
       submit_for_review: options[:submit] == true,
       automatic_release: options[:auto_release] == true,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
       submission_information: {
         add_id_info_uses_idfa: false,
         export_compliance_uses_encryption: false,

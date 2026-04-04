@@ -165,3 +165,56 @@ struct DarkTag: View {
             .cornerRadius(20)
     }
 }
+
+// MARK: - Adaptive Layout for iPad
+
+/// View modifier that constrains content width on iPad for better readability
+struct AdaptiveLayout: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    let maxWidth: CGFloat
+
+    func body(content: Content) -> some View {
+        GeometryReader { geometry in
+            if horizontalSizeClass == .regular {
+                // iPad: constrain width and center
+                content
+                    .frame(maxWidth: maxWidth)
+                    .frame(width: geometry.size.width, alignment: .center)
+            } else {
+                // iPhone: full width
+                content
+                    .frame(width: geometry.size.width)
+            }
+        }
+    }
+}
+
+/// View modifier for Form views on iPad - uses reading width
+struct AdaptiveFormLayout: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    func body(content: Content) -> some View {
+        if horizontalSizeClass == .regular {
+            // iPad: constrain form width for better readability
+            content
+                .formStyle(.grouped)
+                .frame(maxWidth: 700)
+                .frame(maxWidth: .infinity, alignment: .center)
+        } else {
+            // iPhone: default form style
+            content
+        }
+    }
+}
+
+extension View {
+    /// Apply adaptive layout that constrains width on iPad
+    func adaptiveLayout(maxWidth: CGFloat = 600) -> some View {
+        modifier(AdaptiveLayout(maxWidth: maxWidth))
+    }
+
+    /// Apply adaptive form layout for iPad
+    func adaptiveFormLayout() -> some View {
+        modifier(AdaptiveFormLayout())
+    }
+}

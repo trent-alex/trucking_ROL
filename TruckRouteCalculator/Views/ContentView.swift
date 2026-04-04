@@ -93,6 +93,7 @@ struct ContentView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 }
 
@@ -101,6 +102,7 @@ struct ContentView: View {
 struct ScenarioSettingsView: View {
     @ObservedObject var viewModel: ScenarioCalculatorViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     var onResetProfile: (() -> Void)?
 
     // Editable profile settings
@@ -280,7 +282,9 @@ struct ScenarioSettingsView: View {
                     editedMPG = profile.customMPGValue ?? profile.baseMPG
                 }
             }
+            .adaptiveFormLayout()
         }
+        .navigationViewStyle(.stack)
     }
 
     // Calculate MPG based on edited values

@@ -5,6 +5,7 @@ struct ScenarioResultsView: View {
     let scenario: LoadScenario
     @State private var showingCalculationLogic = false
     @State private var isDrivingMode = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     // Profit margin for conditional formatting
     private var profitMargin: Double {
@@ -145,6 +146,8 @@ struct ScenarioResultsView: View {
                 actionButtons
             }
             .padding()
+            .frame(maxWidth: horizontalSizeClass == .regular ? 700 : .infinity)
+            .frame(maxWidth: .infinity)
         }
         .background(AppTheme.backgroundPrimary)
     }

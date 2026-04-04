@@ -1,7 +1,9 @@
 import SwiftUI
+import Combine
 
 struct ScenarioInputView: View {
     @ObservedObject var viewModel: ScenarioCalculatorViewModel
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         ScrollView {
@@ -45,6 +47,8 @@ struct ScenarioInputView: View {
                 }
             }
             .padding()
+            .frame(maxWidth: horizontalSizeClass == .regular ? 700 : .infinity)
+            .frame(maxWidth: .infinity)
         }
         .background(AppTheme.backgroundPrimary)
     }
@@ -223,7 +227,8 @@ struct ScenarioInputView: View {
                 placeholder: "Where are you now?",
                 suggestions: viewModel.currentLocationSuggestions,
                 onSearch: viewModel.searchCurrentLocation,
-                onSelect: viewModel.selectCurrentLocation
+                onSelect: viewModel.selectCurrentLocation,
+                fieldName: "currentLocation"
             )
         }
         .padding()
@@ -274,7 +279,8 @@ struct ScenarioInputView: View {
                 placeholder: "Trailer pickup location",
                 suggestions: viewModel.trailerPickupSuggestions,
                 onSearch: viewModel.searchTrailerPickup,
-                onSelect: viewModel.selectTrailerPickup
+                onSelect: viewModel.selectTrailerPickup,
+                fieldName: "trailerPickup"
             )
         }
         .padding()
@@ -320,7 +326,8 @@ struct ScenarioInputView: View {
                     placeholder: "Load pickup location",
                     suggestions: viewModel.loadPickupSuggestions,
                     onSearch: viewModel.searchLoadPickup,
-                    onSelect: viewModel.selectLoadPickup
+                    onSelect: viewModel.selectLoadPickup,
+                    fieldName: "loadPickup"
                 )
             }
 
@@ -414,11 +421,21 @@ struct ScenarioInputView: View {
     }
 
     private func dropLocationRow(index: Int, drop: DropLocation) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let fieldName = "drop_\(index)"
+        let isInvalid = viewModel.isLocationInvalid(fieldName)
+
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Stop \(index + 1)")
                     .font(.subheadline)
                     .fontWeight(.semibold)
+
+                if isInvalid {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
+
                 Spacer()
                 if viewModel.dropLocations.count > 1 {
                     Button(action: { viewModel.removeDropLocation(at: index) }) {
@@ -433,22 +450,28 @@ struct ScenarioInputView: View {
                 set: { viewModel.updateDropAddress($0, at: index) }
             ))
             .textFieldStyle(.roundedBorder)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isInvalid ? Color.red : Color.clear, lineWidth: 2)
+            )
             .onChange(of: viewModel.dropLocations[safe: index]?.address ?? "") { _, _ in
                 viewModel.searchDropLocation(query: viewModel.dropLocations[safe: index]?.address ?? "", index: index)
+                if isInvalid {
+                    viewModel.clearValidationError(for: fieldName)
+                }
+            }
+
+            if isInvalid {
+                Text("Location not found")
+                    .font(.caption)
+                    .foregroundColor(.red)
             }
 
             // Suggestions
             if index < viewModel.dropLocationSuggestions.count {
-                ForEach(viewModel.dropLocationSuggestions[index]) { suggestion in
-                    Button(action: { viewModel.selectDropLocation(suggestion, at: index) }) {
-                        HStack {
-                            Image(systemName: "mappin")
-                            Text(suggestion.displayText)
-                                .lineLimit(1)
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    }
+                let stableSuggestions = Array(viewModel.dropLocationSuggestions[index].prefix(3))
+                ForEach(stableSuggestions) { suggestion in
+                    dropSuggestionRow(suggestion: suggestion, index: index)
                 }
             }
 
@@ -509,7 +532,8 @@ struct ScenarioInputView: View {
                     placeholder: "Trailer drop location",
                     suggestions: viewModel.trailerDropSuggestions,
                     onSearch: viewModel.searchTrailerDrop,
-                    onSelect: viewModel.selectTrailerDrop
+                    onSelect: viewModel.selectTrailerDrop,
+                    fieldName: "trailerDrop"
                 )
             }
         }
@@ -521,26 +545,102 @@ struct ScenarioInputView: View {
     // MARK: - Calculate Button
 
     private var calculateButton: some View {
-        Button(action: {
-            Task { await viewModel.calculateScenario() }
-        }) {
-            HStack {
-                if viewModel.isCalculating {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.textOnAccent))
-                } else {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
+        VStack(spacing: 12) {
+            // Show validation errors if any
+            if !viewModel.invalidLocations.isEmpty {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(viewModel.validationMessage ?? "Some locations could not be found")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
                 }
-                Text(viewModel.isCalculating ? "Calculating..." : "Calculate Profitability")
-                    .fontWeight(.semibold)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(8)
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(viewModel.canCalculate ? AppTheme.accent : AppTheme.border)
-            .foregroundColor(viewModel.canCalculate ? AppTheme.textOnAccent : AppTheme.textSecondary)
-            .cornerRadius(12)
+
+            if viewModel.isValidatingLocations {
+                // Validating state
+                HStack {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("Validating locations...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+            } else if viewModel.isCalculating {
+                // Calculating state - show progress and cancel
+                calculatingView
+            } else {
+                // Normal calculate button
+                Button(action: {
+                    viewModel.startCalculation()
+                }) {
+                    HStack {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                        Text("Calculate Profitability")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(viewModel.canCalculate ? AppTheme.accent : AppTheme.border)
+                    .foregroundColor(viewModel.canCalculate ? AppTheme.textOnAccent : AppTheme.textSecondary)
+                    .cornerRadius(12)
+                }
+                .disabled(!viewModel.canCalculate)
+            }
         }
-        .disabled(!viewModel.canCalculate || viewModel.isCalculating)
+    }
+
+    // MARK: - Calculating View
+
+    private var calculatingView: some View {
+        VStack(spacing: 20) {
+            // Animated truck icon
+            HStack(spacing: 12) {
+                Image(systemName: "truck.box.fill")
+                    .font(.title)
+                    .foregroundColor(AppTheme.accent)
+                    .symbolEffect(.pulse)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Calculating Route")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    EncouragementView()
+                }
+
+                Spacer()
+            }
+
+            // Cancel button
+            Button(action: {
+                viewModel.cancelCalculation()
+            }) {
+                HStack {
+                    Image(systemName: "xmark.circle.fill")
+                    Text("Cancel & Edit Addresses")
+                }
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.red)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(10)
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(12)
     }
 
     // MARK: - Error View
@@ -565,27 +665,147 @@ struct ScenarioInputView: View {
         placeholder: String,
         suggestions: [LocationSuggestion],
         onSearch: @escaping () -> Void,
-        onSelect: @escaping (LocationSuggestion) -> Void
+        onSelect: @escaping (LocationSuggestion) -> Void,
+        fieldName: String = ""
     ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextField(placeholder, text: text)
-                .textFieldStyle(.roundedBorder)
-                .onChange(of: text.wrappedValue) { _, _ in
-                    onSearch()
-                }
+        let isInvalid = viewModel.isLocationInvalid(fieldName)
 
-            ForEach(suggestions.prefix(3)) { suggestion in
-                Button(action: { onSelect(suggestion) }) {
-                    HStack {
-                        Image(systemName: "mappin")
-                        Text(suggestion.displayText)
-                            .lineLimit(1)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                TextField(placeholder, text: text)
+                    .textFieldStyle(.roundedBorder)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(isInvalid ? Color.red : Color.clear, lineWidth: 2)
+                    )
+                    .onChange(of: text.wrappedValue) { _, _ in
+                        onSearch()
+                        // Clear validation error when user edits
+                        if isInvalid {
+                            viewModel.clearValidationError(for: fieldName)
+                        }
                     }
-                    .font(.caption)
-                    .foregroundColor(.blue)
+
+                if isInvalid {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundColor(.red)
                 }
             }
+
+            if isInvalid {
+                Text("Location not found")
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
+
+            // Use a stable array to prevent re-renders during tap
+            let stableSuggestions = Array(suggestions.prefix(3))
+            ForEach(stableSuggestions) { suggestion in
+                suggestionRow(suggestion: suggestion, onSelect: onSelect)
+            }
         }
+    }
+
+    /// Separate view for suggestion row to prevent re-render issues
+    private func suggestionRow(
+        suggestion: LocationSuggestion,
+        onSelect: @escaping (LocationSuggestion) -> Void
+    ) -> some View {
+        HStack {
+            Image(systemName: "mappin.circle.fill")
+                .foregroundColor(.blue)
+            Text(suggestion.displayText)
+                .lineLimit(1)
+            Spacer()
+            Image(systemName: "arrow.up.left")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .font(.subheadline)
+        .foregroundColor(.primary)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(10)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // Dismiss keyboard first to prevent race conditions
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            // Small delay to let keyboard dismiss complete
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                onSelect(suggestion)
+            }
+        }
+    }
+
+    /// Suggestion row for drop locations
+    private func dropSuggestionRow(suggestion: LocationSuggestion, index: Int) -> some View {
+        HStack {
+            Image(systemName: "mappin.circle.fill")
+                .foregroundColor(.blue)
+            Text(suggestion.displayText)
+                .lineLimit(1)
+            Spacer()
+            Image(systemName: "arrow.up.left")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .font(.subheadline)
+        .foregroundColor(.primary)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .background(Color(.tertiarySystemGroupedBackground))
+        .cornerRadius(8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                viewModel.selectDropLocation(suggestion, at: index)
+            }
+        }
+    }
+}
+
+// MARK: - Encouragement View
+
+struct EncouragementView: View {
+    @State private var currentMessage: String = ""
+    @State private var messageIndex: Int = 0
+    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
+    private let messages = [
+        "Load profit around the corner...",
+        "Building you an honest number...",
+        "Crunching the miles...",
+        "Calculating your bottom line...",
+        "Finding the best route...",
+        "Running the numbers...",
+        "Checking fuel costs...",
+        "Every mile counts...",
+        "Your profit matters...",
+        "Mapping your journey..."
+    ]
+
+    var body: some View {
+        Text(currentMessage)
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .italic()
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.5), value: currentMessage)
+            .onAppear {
+                currentMessage = messages.randomElement() ?? messages[0]
+            }
+            .onReceive(timer) { _ in
+                withAnimation {
+                    // Pick a different random message
+                    var newMessage = messages.randomElement() ?? messages[0]
+                    while newMessage == currentMessage && messages.count > 1 {
+                        newMessage = messages.randomElement() ?? messages[0]
+                    }
+                    currentMessage = newMessage
+                }
+            }
     }
 }
 

@@ -29,6 +29,8 @@ struct ProfileSetupView: View {
         TruckDatabase.models(for: selectedMake, year: truckYear)
     }
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     var body: some View {
         NavigationView {
             Form {
@@ -183,7 +185,9 @@ struct ProfileSetupView: View {
                     selectedSpec = availableModels.first
                 }
             }
+            .adaptiveFormLayout()
         }
+        .navigationViewStyle(.stack)
     }
 
     // MARK: - Predefined Truck Section
