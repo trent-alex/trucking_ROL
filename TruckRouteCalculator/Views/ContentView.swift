@@ -4,10 +4,12 @@ import MapKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(StoreManager.self) private var storeManager
     @StateObject private var viewModel = ScenarioCalculatorViewModel()
     @State private var showingSettings = false
     @State private var showingHistory = false
     @State private var showingOnboarding = !DriverProfile.hasCompletedOnboarding
+    @State private var showingPaywall = false
 
     private var saveConfirmationBanner: some View {
         HStack {
@@ -49,6 +51,18 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 16) {
+                        if !storeManager.isLifetimeUnlocked {
+                            Button(action: { showingPaywall = true }) {
+                                Text("PRO")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.orange)
+                                    .cornerRadius(6)
+                            }
+                        }
                         if !viewModel.scenarios.isEmpty {
                             Button(action: { showingHistory = true }) {
                                 Image(systemName: "clock.arrow.circlepath")
@@ -59,6 +73,9 @@ struct ContentView: View {
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $showingPaywall) {
+                PaywallView()
             }
             .sheet(isPresented: $showingSettings) {
                 ScenarioSettingsView(viewModel: viewModel) {

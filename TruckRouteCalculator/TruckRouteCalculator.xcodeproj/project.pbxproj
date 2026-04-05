@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		08B70B61F5637123AF5B13E0 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 359D5452862B27BFD9528AA9 /* AppTheme.swift */; };
-		A1B2C3D4E5F60001 /* StateLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002 /* StateLookupService.swift */; };
-		A1B2C3D4E5F60003 /* StateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004 /* StateBoundaries.swift */; };
 		43C63BB22F2BCAA100643D30 /* CostSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAD2F2BCAA100643D30 /* CostSummaryView.swift */; };
 		43C63BB32F2BCAA100643D30 /* RouteCalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAA2F2BCAA100643D30 /* RouteCalculatorViewModel.swift */; };
 		43C63BB42F2BCAA100643D30 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BAC2F2BCAA100643D30 /* ContentView.swift */; };
@@ -39,6 +37,14 @@
 		43C63BD92F2BCAAE00643D30 /* StateWeightLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BDA2F2BCAAE00643D30 /* StateWeightLimits.swift */; };
 		43C63BDB2F2BCAAF00643D30 /* StateWeightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C63BDC2F2BCAAF00643D30 /* StateWeightService.swift */; };
 		43C63BDD2F2BCAB000643D30 /* state-weight-limits.json in Resources */ = {isa = PBXBuildFile; fileRef = 43C63BDE2F2BCAB000643D30 /* state-weight-limits.json */; };
+		A1B2C3D4E5F60001 /* StateLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002 /* StateLookupService.swift */; };
+		A1B2C3D4E5F60003 /* StateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004 /* StateBoundaries.swift */; };
+		B1C2D3E4F5A60001 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60002 /* StoreManager.swift */; };
+		B1C2D3E4F5A60003 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60004 /* KeychainHelper.swift */; };
+		B1C2D3E4F5A60005 /* PromoCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60006 /* PromoCodes.swift */; };
+		B1C2D3E4F5A60007 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60008 /* PaywallView.swift */; };
+		B1C2D3E4F5A60009 /* PromoCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6000A /* PromoCodeView.swift */; };
+		B1C2D3E4F5A6000B /* PremiumGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6000C /* PremiumGate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,7 +65,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		359D5452862B27BFD9528AA9 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities/AppTheme.swift; name = AppTheme.swift; sourceTree = "<group>"; };
+		359D5452862B27BFD9528AA9 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppTheme.swift; path = Utilities/AppTheme.swift; sourceTree = "<group>"; };
 		43C63B762F2B026600643D30 /* TruckRouteCalculator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TruckRouteCalculator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		43C63B832F2B026800643D30 /* TruckRouteCalculatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TruckRouteCalculatorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		43C63B8D2F2B026800643D30 /* TruckRouteCalculatorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TruckRouteCalculatorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -94,6 +100,12 @@
 		43C63BDE2F2BCAB000643D30 /* state-weight-limits.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "state-weight-limits.json"; sourceTree = "<group>"; };
 		A1B2C3D4E5F60002 /* StateLookupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateLookupService.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60004 /* StateBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateBoundaries.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60002 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60004 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60006 /* PromoCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCodes.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60008 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A6000A /* PromoCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCodeView.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A6000C /* PremiumGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumGate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -139,6 +151,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		43311ADD2F81796F003C3B01 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				359D5452862B27BFD9528AA9 /* AppTheme.swift */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		43C63B6D2F2B026600643D30 = {
 			isa = PBXGroup;
 			children = (
@@ -149,10 +169,13 @@
 				43C63BA92F2BCAA100643D30 /* Utilities */,
 				43C63BAB2F2BCAA100643D30 /* ViewModels */,
 				43C63BB12F2BCAA100643D30 /* Views */,
+				B1C2D3E4F5A60010 /* Store */,
+				B1C2D3E4F5A60011 /* Modifiers */,
 				43C63B782F2B026600643D30 /* TruckRouteCalculator */,
 				43C63B862F2B026800643D30 /* TruckRouteCalculatorTests */,
 				43C63B902F2B026800643D30 /* TruckRouteCalculatorUITests */,
 				43C63B772F2B026600643D30 /* Products */,
+				43311ADD2F81796F003C3B01 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -226,8 +249,28 @@
 				43C63BD22F2BCAAA00643D30 /* ScenarioInputView.swift */,
 				43C63BD42F2BCAAB00643D30 /* ScenarioResultsView.swift */,
 				43C63BD82F2BCAAD00643D30 /* ScenarioRouteMapView.swift */,
+				B1C2D3E4F5A60008 /* PaywallView.swift */,
+				B1C2D3E4F5A6000A /* PromoCodeView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		B1C2D3E4F5A60010 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				B1C2D3E4F5A60002 /* StoreManager.swift */,
+				B1C2D3E4F5A60004 /* KeychainHelper.swift */,
+				B1C2D3E4F5A60006 /* PromoCodes.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		B1C2D3E4F5A60011 /* Modifiers */ = {
+			isa = PBXGroup;
+			children = (
+				B1C2D3E4F5A6000C /* PremiumGate.swift */,
+			);
+			path = Modifiers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -406,6 +449,12 @@
 				43C63BDB2F2BCAAF00643D30 /* StateWeightService.swift in Sources */,
 				A1B2C3D4E5F60001 /* StateLookupService.swift in Sources */,
 				A1B2C3D4E5F60003 /* StateBoundaries.swift in Sources */,
+				B1C2D3E4F5A60001 /* StoreManager.swift in Sources */,
+				B1C2D3E4F5A60003 /* KeychainHelper.swift in Sources */,
+				B1C2D3E4F5A60005 /* PromoCodes.swift in Sources */,
+				B1C2D3E4F5A60007 /* PaywallView.swift in Sources */,
+				B1C2D3E4F5A60009 /* PromoCodeView.swift in Sources */,
+				B1C2D3E4F5A6000B /* PremiumGate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -564,17 +613,17 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 2FG27YDADD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to set your current position for route calculations.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to set your current position for route calculations.";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -600,18 +649,18 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2FG27YDADD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to set your current position for route calculations.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to set your current position for route calculations.";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -637,7 +686,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -659,7 +708,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -680,7 +729,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				MARKETING_VERSION = 1.0;
@@ -700,7 +749,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				MARKETING_VERSION = 1.0;
