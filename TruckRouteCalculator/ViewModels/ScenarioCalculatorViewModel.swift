@@ -34,6 +34,9 @@ class ScenarioCalculatorViewModel: ObservableObject {
     @Published var dropLocationSuggestions: [[LocationSuggestion]] = [[]]
     @Published var trailerDropSuggestions: [LocationSuggestion] = []
 
+    /// Flag to suppress search when programmatically setting location from selection
+    private var suppressNextSearch = false
+
     // MARK: - State
     @Published var isCalculating: Bool = false
     @Published var errorMessage: String?
@@ -323,6 +326,12 @@ class ScenarioCalculatorViewModel: ObservableObject {
     }
 
     private func searchPlaces(query: String, completion: @escaping ([LocationSuggestion]) -> Void) {
+        // Skip search if we just selected a location programmatically
+        if suppressNextSearch {
+            suppressNextSearch = false
+            return
+        }
+
         searchTask?.cancel()
         searchTask = Task {
             try? await Task.sleep(nanoseconds: 300_000_000)
@@ -334,19 +343,21 @@ class ScenarioCalculatorViewModel: ObservableObject {
     // MARK: - Selection
 
     func selectCurrentLocation(_ suggestion: LocationSuggestion) {
+        suppressNextSearch = true
         currentLocation = suggestion.displayText
         currentLocationSuggestions = []
-        // Pre-resolve for faster calculation
         mapService.preResolveLocation(suggestion.displayText)
     }
 
     func selectTrailerPickup(_ suggestion: LocationSuggestion) {
+        suppressNextSearch = true
         trailerPickupLocation = suggestion.displayText
         trailerPickupSuggestions = []
         mapService.preResolveLocation(suggestion.displayText)
     }
 
     func selectLoadPickup(_ suggestion: LocationSuggestion) {
+        suppressNextSearch = true
         loadPickupLocation = suggestion.displayText
         loadPickupSuggestions = []
         mapService.preResolveLocation(suggestion.displayText)
@@ -354,6 +365,7 @@ class ScenarioCalculatorViewModel: ObservableObject {
 
     func selectDropLocation(_ suggestion: LocationSuggestion, at index: Int) {
         guard index < dropLocations.count else { return }
+        suppressNextSearch = true
         dropLocations[index].address = suggestion.displayText
         if index < dropLocationSuggestions.count {
             dropLocationSuggestions[index] = []
@@ -362,6 +374,7 @@ class ScenarioCalculatorViewModel: ObservableObject {
     }
 
     func selectTrailerDrop(_ suggestion: LocationSuggestion) {
+        suppressNextSearch = true
         trailerDropLocation = suggestion.displayText
         trailerDropSuggestions = []
         mapService.preResolveLocation(suggestion.displayText)
