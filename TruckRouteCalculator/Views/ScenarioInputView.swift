@@ -4,6 +4,8 @@ import Combine
 struct ScenarioInputView: View {
     @ObservedObject var viewModel: ScenarioCalculatorViewModel
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(StoreManager.self) private var storeManager
+    @State private var showPaywall = false
 
     var body: some View {
         ScrollView {
@@ -51,6 +53,9 @@ struct ScenarioInputView: View {
             .frame(maxWidth: .infinity)
         }
         .background(AppTheme.backgroundPrimary)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
     }
 
     // MARK: - Saved Loads Gallery
@@ -580,7 +585,11 @@ struct ScenarioInputView: View {
             } else {
                 // Normal calculate button
                 Button(action: {
-                    viewModel.startCalculation()
+                    if storeManager.canPerformCalculation {
+                        viewModel.startCalculation()
+                    } else {
+                        showPaywall = true
+                    }
                 }) {
                     HStack {
                         Image(systemName: "chart.line.uptrend.xyaxis")
@@ -594,6 +603,13 @@ struct ScenarioInputView: View {
                     .cornerRadius(12)
                 }
                 .disabled(!viewModel.canCalculate)
+
+                // Show remaining calculations for non-pro users
+                if !storeManager.isLifetimeUnlocked {
+                    Text("\(storeManager.calculationsRemaining) free calculations left")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
         }
     }

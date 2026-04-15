@@ -44,6 +44,9 @@ class ScenarioCalculatorViewModel: ObservableObject {
     @Published var showingResults: Bool = false
     @Published var showSaveConfirmation: Bool = false
 
+    /// Callback invoked after a successful calculation (used to track trial usage)
+    var onCalculationComplete: (() -> Void)?
+
     // MARK: - Calculation Progress
     @Published var calculationProgress: String = ""
     @Published var calculationStartTime: Date?
@@ -548,6 +551,9 @@ class ScenarioCalculatorViewModel: ObservableObject {
             currentScenario = scenario
             showingResults = true
             calculationProgress = ""
+
+            // Notify that calculation completed successfully (for trial tracking)
+            onCalculationComplete?()
 
             // Save last used lumper charge for prefill
             let maxLumper = max(pickupLumperCharge, dropLocations.map { $0.lumperCharge }.max() ?? 0)

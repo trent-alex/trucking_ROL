@@ -111,6 +111,12 @@ struct ContentView: View {
             }
         }
         .navigationViewStyle(.stack)
+        .onAppear {
+            // Wire up calculation tracking for trial
+            viewModel.onCalculationComplete = { [weak storeManager] in
+                storeManager?.incrementCalculationCount()
+            }
+        }
     }
 }
 

@@ -15,6 +15,10 @@ class StoreManager {
         case lifetimeFounder = "com.pivotallift.rol.lifetime.founder"
     }
 
+    // MARK: - Trial Constants
+
+    private static let freeCalculationLimit = 5
+
     // MARK: - Observable State
 
     private(set) var products: [Product] = []
@@ -24,6 +28,24 @@ class StoreManager {
 
     /// True if user has lifetime access (via purchase or promo code)
     var isLifetimeUnlocked: Bool = false
+
+    // MARK: - Trial State
+
+    /// Number of free calculations remaining
+    var calculationsRemaining: Int {
+        max(0, Self.freeCalculationLimit - KeychainHelper.calculationCount)
+    }
+
+    /// Whether user can perform a calculation (has trial remaining or is unlocked)
+    var canPerformCalculation: Bool {
+        isLifetimeUnlocked || calculationsRemaining > 0
+    }
+
+    /// Increment the calculation count (call after successful calculation)
+    func incrementCalculationCount() {
+        guard !isLifetimeUnlocked else { return }
+        KeychainHelper.calculationCount += 1
+    }
 
     // MARK: - Private Properties
 
@@ -163,14 +185,6 @@ class StoreManager {
         } catch {
             errorMessage = "Failed to sync: \(error.localizedDescription)"
         }
-    }
-
-    // MARK: - Promo Code Handling
-
-    /// Unlock lifetime access via influencer promo code (no purchase)
-    func unlockViaInfluencerCode() {
-        KeychainHelper.isLifetimeUnlocked = true
-        isLifetimeUnlocked = true
     }
 
     // MARK: - Private Helpers

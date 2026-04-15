@@ -7,6 +7,7 @@ enum KeychainHelper {
 
     private static let service = "com.pivotallift.rol"
     private static let lifetimeUnlockedKey = "isLifetimeUnlocked"
+    private static let calculationCountKey = "calculationCount"
 
     // MARK: - Lifetime Unlock State
 
@@ -24,6 +25,27 @@ enum KeychainHelper {
                 update(key: lifetimeUnlockedKey, data: data)
             } else {
                 save(key: lifetimeUnlockedKey, data: data)
+            }
+        }
+    }
+
+    // MARK: - Calculation Count (for free trial)
+
+    static var calculationCount: Int {
+        get {
+            guard let data = read(key: calculationCountKey),
+                  let value = String(data: data, encoding: .utf8),
+                  let count = Int(value) else {
+                return 0
+            }
+            return count
+        }
+        set {
+            let data = Data(String(newValue).utf8)
+            if read(key: calculationCountKey) != nil {
+                update(key: calculationCountKey, data: data)
+            } else {
+                save(key: calculationCountKey, data: data)
             }
         }
     }
@@ -86,5 +108,6 @@ enum KeychainHelper {
     /// Clears all keychain data for this app (useful for testing)
     static func clearAll() {
         delete(key: lifetimeUnlockedKey)
+        delete(key: calculationCountKey)
     }
 }
