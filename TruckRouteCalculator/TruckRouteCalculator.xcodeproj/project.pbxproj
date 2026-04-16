@@ -41,9 +41,7 @@
 		A1B2C3D4E5F60003 /* StateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004 /* StateBoundaries.swift */; };
 		B1C2D3E4F5A60001 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60002 /* StoreManager.swift */; };
 		B1C2D3E4F5A60003 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60004 /* KeychainHelper.swift */; };
-		B1C2D3E4F5A60005 /* PromoCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60006 /* PromoCodes.swift */; };
 		B1C2D3E4F5A60007 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60008 /* PaywallView.swift */; };
-		B1C2D3E4F5A60009 /* PromoCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6000A /* PromoCodeView.swift */; };
 		B1C2D3E4F5A6000B /* PremiumGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6000C /* PremiumGate.swift */; };
 /* End PBXBuildFile section */
 
@@ -102,9 +100,7 @@
 		A1B2C3D4E5F60004 /* StateBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateBoundaries.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60002 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60004 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
-		B1C2D3E4F5A60006 /* PromoCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCodes.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60008 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
-		B1C2D3E4F5A6000A /* PromoCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCodeView.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A6000C /* PremiumGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumGate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -250,7 +246,6 @@
 				43C63BD42F2BCAAB00643D30 /* ScenarioResultsView.swift */,
 				43C63BD82F2BCAAD00643D30 /* ScenarioRouteMapView.swift */,
 				B1C2D3E4F5A60008 /* PaywallView.swift */,
-				B1C2D3E4F5A6000A /* PromoCodeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -260,7 +255,6 @@
 			children = (
 				B1C2D3E4F5A60002 /* StoreManager.swift */,
 				B1C2D3E4F5A60004 /* KeychainHelper.swift */,
-				B1C2D3E4F5A60006 /* PromoCodes.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -451,9 +445,7 @@
 				A1B2C3D4E5F60003 /* StateBoundaries.swift in Sources */,
 				B1C2D3E4F5A60001 /* StoreManager.swift in Sources */,
 				B1C2D3E4F5A60003 /* KeychainHelper.swift in Sources */,
-				B1C2D3E4F5A60005 /* PromoCodes.swift in Sources */,
 				B1C2D3E4F5A60007 /* PaywallView.swift in Sources */,
-				B1C2D3E4F5A60009 /* PromoCodeView.swift in Sources */,
 				B1C2D3E4F5A6000B /* PremiumGate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -613,7 +605,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 2FG27YDADD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -649,7 +641,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2FG27YDADD;
 				ENABLE_PREVIEWS = YES;
@@ -686,7 +678,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 31;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -708,7 +700,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 31;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -729,7 +721,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 31;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				MARKETING_VERSION = 1.0;
@@ -749,7 +741,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 31;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				MARKETING_VERSION = 1.0;

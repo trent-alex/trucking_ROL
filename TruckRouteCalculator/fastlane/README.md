@@ -31,6 +31,22 @@ Build the app for simulator
 
 Run unit tests
 
+### ios ui_test
+
+```sh
+[bundle exec] fastlane ios ui_test
+```
+
+Run UI tests and generate report
+
+### ios test_all
+
+```sh
+[bundle exec] fastlane ios test_all
+```
+
+Run all tests (unit + UI)
+
 ### ios build_and_test
 
 ```sh

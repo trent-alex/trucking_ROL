@@ -2,13 +2,10 @@ import SwiftUI
 import StoreKit
 
 /// Paywall view for lifetime purchase
-/// Shows full-price product by default, with promo code option
 struct PaywallView: View {
     @Environment(StoreManager.self) private var storeManager
     @Environment(\.dismiss) private var dismiss
 
-    @State private var showingPromoSheet = false
-    @State private var showFounderProduct = false
     @State private var showSuccessState = false
 
     var body: some View {
@@ -61,14 +58,6 @@ struct PaywallView: View {
                         dismiss()
                     }
                 }
-            }
-            .sheet(isPresented: $showingPromoSheet) {
-                PromoCodeView(
-                    showFounderProduct: $showFounderProduct,
-                    onInfluencerUnlock: {
-                        showSuccessState = true
-                    }
-                )
             }
             .onChange(of: storeManager.isLifetimeUnlocked) { _, unlocked in
                 if unlocked {
@@ -127,23 +116,7 @@ struct PaywallView: View {
 
     private var productSection: some View {
         VStack(spacing: 16) {
-            // Show founder product if code was entered
-            if showFounderProduct, let founder = storeManager.founderProduct {
-                ProductCard(
-                    product: founder,
-                    badge: "FOUNDER PRICE",
-                    badgeColor: .green,
-                    onPurchase: {
-                        Task {
-                            await storeManager.purchase(founder)
-                        }
-                    },
-                    isLoading: storeManager.purchaseInProgress
-                )
-            }
-
-            // Always show full price (unless founder is shown)
-            if !showFounderProduct, let lifetime = storeManager.lifetimeProduct {
+            if let lifetime = storeManager.lifetimeProduct {
                 ProductCard(
                     product: lifetime,
                     badge: "LIFETIME",
@@ -156,16 +129,6 @@ struct PaywallView: View {
                     isLoading: storeManager.purchaseInProgress
                 )
             }
-
-            // Promo code button
-            Button {
-                showingPromoSheet = true
-            } label: {
-                Text("Have a code?")
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-            }
-            .padding(.top, 8)
         }
     }
 

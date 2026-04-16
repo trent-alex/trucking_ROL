@@ -1,0 +1,24 @@
+# iPhone screenshot devices for App Store
+devices([
+  "iPhone 17 Pro Max",
+  "iPhone 17 Pro"
+])
+
+languages([
+  "en-US"
+])
+
+# The scheme containing the UI Tests
+scheme("TruckRouteCalculator")
+
+# Output directory
+output_directory("./fastlane/screenshots")
+
+# Clean slate
+clear_previous_screenshots(false)
+
+# Clean status bar
+override_status_bar(true)
+
+# Launch with demo mode
+launch_arguments(["-UITestMode", "true"])
