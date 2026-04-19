@@ -18,6 +18,14 @@ DerivedData/
 fastlane/api_key.json
 fastlane/report.xml
 fastlane/README.md
+fastlane/screenshots/**/old/
+
+# Ruby/Bundler
+.bundle/
+vendor/
+
+# Test output
+test_output/
 
 # Misc
 .claude-code/
