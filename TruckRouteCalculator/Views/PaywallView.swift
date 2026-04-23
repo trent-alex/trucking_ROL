@@ -116,6 +116,20 @@ struct PaywallView: View {
 
     private var productSection: some View {
         VStack(spacing: 16) {
+            if let founder = storeManager.founderProduct {
+                ProductCard(
+                    product: founder,
+                    badge: "FOUNDER PRICE",
+                    badgeColor: .purple,
+                    onPurchase: {
+                        Task {
+                            await storeManager.purchase(founder)
+                        }
+                    },
+                    isLoading: storeManager.purchaseInProgress
+                )
+            }
+
             if let lifetime = storeManager.lifetimeProduct {
                 ProductCard(
                     product: lifetime,
@@ -128,6 +142,14 @@ struct PaywallView: View {
                     },
                     isLoading: storeManager.purchaseInProgress
                 )
+            }
+
+            if storeManager.products.isEmpty && !storeManager.isLoading {
+                Text("Products unavailable. Please check your connection and try again.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding()
             }
         }
     }

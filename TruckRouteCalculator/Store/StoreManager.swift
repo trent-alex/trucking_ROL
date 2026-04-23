@@ -11,8 +11,8 @@ class StoreManager {
     // MARK: - Product IDs
 
     enum ProductID: String, CaseIterable {
-        case lifetime = "com.pivotallift.rol.lifetime"
-        case lifetimeFounder = "com.pivotallift.rol.lifetime.founder"
+        case lifetime = "ROL_Prepremium_Lifetime"
+        case lifetimeFounder = "ROL_PrePremium_Lifetime_Founder"
     }
 
     // MARK: - Trial Constants

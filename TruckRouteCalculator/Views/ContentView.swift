@@ -126,6 +126,8 @@ struct ScenarioSettingsView: View {
     @ObservedObject var viewModel: ScenarioCalculatorViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(StoreManager.self) private var storeManager
+    @State private var showingPaywall = false
     var onResetProfile: (() -> Void)?
 
     // Editable profile settings
@@ -148,6 +150,36 @@ struct ScenarioSettingsView: View {
     var body: some View {
         NavigationView {
             Form {
+                Section("ROL Pro") {
+                    if storeManager.isLifetimeUnlocked {
+                        HStack {
+                            Image(systemName: "star.circle.fill")
+                                .foregroundColor(.orange)
+                            Text("Pro Unlocked")
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        }
+                    } else {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Unlock ROL Pro")
+                                    .fontWeight(.semibold)
+                                Text("\(storeManager.calculationsRemaining) free calculations remaining")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Button("Unlock") {
+                                showingPaywall = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                        }
+                    }
+                }
+
                 Section("Fuel") {
                     HStack {
                         Text("Fuel Price")
@@ -358,6 +390,9 @@ struct ScenarioSettingsView: View {
             .adaptiveFormLayout()
         }
         .navigationViewStyle(.stack)
+        .sheet(isPresented: $showingPaywall) {
+            PaywallView()
+        }
     }
 
     // Calculate MPG based on edited values (uses selected spec for preview)
